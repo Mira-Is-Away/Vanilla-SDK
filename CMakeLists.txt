@@ -1,13 +1,12 @@
-cmake_minimum_required(VERSION 3.29.3)
-project(vanilla)
+cmake_minimum_required(VERSION 3.29)
+project(vanilla C)
 
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED YES)
+set(CMAKE_C_EXTENSIONS OFF)
+
+# Dependencies
 include(FetchContent)
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -Wextra -Wpedantic -ldl -lpthread -lwayland-client -lwayland-server -lwayland-cursor -lwayland-egl -lXxf86vm -lXrandr -lXi")
-
-set(CMAKE_C_STANDARD            17)
-set(CMAKE_C_STANDARD_REQUIRED   YES)
-set(CMAKE_C_EXTENSIONS          OFF)
 
 FetchContent_Declare(
     glfw
@@ -18,6 +17,9 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
+
+find_package(Vulkan REQUIRED)
+find_package(Threads REQUIRED)
 
 add_executable(${PROJECT_NAME})
 
@@ -36,5 +38,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     glfw
-    vulkan
+    Vulkan::Vulkan
+    Threads::Threads
+    ${CMAKE_DL_LIBS}
 )
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+endif()

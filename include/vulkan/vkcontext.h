@@ -11,7 +11,8 @@
 #ifndef VANILLA_VULKAN_VKCONTEXT_H_
 #define VANILLA_VULKAN_VKCONTEXT_H_
 
-#include <vulkan/vulkan.h>
+#define GLFW_INCLUDE_VULKAN
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include "misc/vnl_status.h"
