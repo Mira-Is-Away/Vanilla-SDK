@@ -63,29 +63,31 @@ typedef struct VnlIList {
 /**
  * @brief Iterates over the list and provides the parent structure pointer directly.
  * @param ptr A valid pointer to the desired object's type.
+ * @param type The type of the parent structure.
  * @param list Pointer to the list link.
  * @param member The name of the struct field that holds the pointers to the nodes on the list.
  */
-#define vnl_ilist_for_each_entry(ptr, list, member) \
-    for (ptr = ((list)->head ? vnl_container_of((list)->head, __typeof__(*ptr), member) : NULL); \
+#define vnl_ilist_for_each_entry(ptr, type, list, member) \
+    for (ptr = ((list)->head ? vnl_ilist_container_of((list)->head, type, member) : NULL); \
          ptr != NULL; \
-         ptr = (ptr->member.next ? vnl_container_of(ptr->member.next, __typeof__(*ptr), member) : NULL))
+         ptr = (ptr->member.next ? vnl_ilist_container_of(ptr->member.next, type, member) : NULL))
 
 /**
  * @brief Iterates over the list entries safely (allows removal).
  * @param ptr A valid pointer of the desired object's type.
  * @param next A pointer of the same type as ptr. The macro will use it to iterate over the list. It doesn't need to be initialised.
+ * @param type The type of the parent structure.
  * @param list A pointer to the list link.
  * @param member The name of the struct field that holds the pointers to the nodes on the list.
  */
 
 /* you're not expected to understand this */
-#define vnl_ilist_for_each_entry_safe(ptr, next, list, member) \
-    for (ptr = ((list)->head ? vnl_container_of((list)->head, __typeof__(*ptr), member) : NULL), \
-         next = ((ptr && ptr->member.next) ? vnl_container_of(ptr->member.next, __typeof__(*ptr), member) : NULL); \
+#define vnl_ilist_for_each_entry_safe(ptr, next, type, list, member) \
+    for (ptr = ((list)->head ? vnl_ilist_container_of((list)->head, type, member) : NULL), \
+         next = ((ptr && ptr->member.next) ? vnl_ilist_container_of(ptr->member.next, type, member) : NULL); \
          ptr != NULL; \
          ptr = next, \
-         next = ((ptr && ptr->member.next) ? vnl_container_of(ptr->member.next, __typeof__(*ptr), member) : NULL))
+         next = ((ptr && ptr->member.next) ? vnl_ilist_container_of(ptr->member.next, type, member) : NULL))
 
 /**
  * @brief Initializes a list head.
