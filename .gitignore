@@ -1,3 +1,5 @@
 /bin
 docs.sh
 *typ
+/.vs
+/out

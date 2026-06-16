@@ -106,7 +106,10 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSu
     Allocate the necessary memory for the queue families found
     and get the queue families proper
     */
-    VkQueueFamilyProperties queue_families[queue_family_count];
+    VkQueueFamilyProperties* queue_families = malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
+    if (!queue_families) {
+        return indices;
+    }
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families);
 
     for (u32 i = 0; i < queue_family_count; i++) {
@@ -125,6 +128,7 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSu
         if (indices.has_graphics_family && indices.has_present_family) break;
     }
 
+    free(queue_families);
     return indices;
 }
 
@@ -143,7 +147,10 @@ static VnlStatus vk_pick_physical_device(VkContext* vkctx) {
         return VNL_ERROR_PHYSICAL_DEVICE_NOT_FOUND;
     }
 
-    VkPhysicalDevice devices[device_count];
+    VkPhysicalDevice* devices = malloc(sizeof(VkPhysicalDevice) * device_count);
+    if (!devices) {
+        return VNL_ERROR_OUT_OF_MEMORY;
+    }
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, devices);
 
     for (u32 i = 0; i < device_count; i++) {
@@ -152,6 +159,8 @@ static VnlStatus vk_pick_physical_device(VkContext* vkctx) {
             break;
         }
     }
+
+    free(devices);
 
     if (physical_device == VK_NULL_HANDLE) {
         printf("Failed to find a GPU with Vulkan support.\n");
