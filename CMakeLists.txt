@@ -5,7 +5,6 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 set(CMAKE_C_EXTENSIONS OFF)
 
-# Dependencies
 include(FetchContent)
 
 FetchContent_Declare(
