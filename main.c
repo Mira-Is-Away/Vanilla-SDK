@@ -3,6 +3,8 @@
 
 #include "vanilla.h"
 
+#include "mira/clarity.h"
+
 // TODO: Add Vulkan validation layers
 // TODO: Add proper logging with filters
 
@@ -19,6 +21,7 @@ int main() {
     VnlEngine* engine = NULL;
 
     VnlStatus status = vnl_init(&config, &engine);
+
     if(status != VNL_SUCCESS) {
         printf("Failed to initialise Vanilla (Error Code: %d). Terminating program...\n", status);
         exit(EXIT_FAILURE);

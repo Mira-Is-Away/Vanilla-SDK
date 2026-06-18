@@ -7,6 +7,11 @@
 #include <string.h>
 #include <GLFW/glfw3.h>
 
+#ifndef NDEBUG
+#define MIRA_CLARITY_DEBUG
+#endif
+#include <mira/clarity.h>
+
 #include "misc/vnl_macros.h"
 #include "misc/vnl_status.h"
 #include "misc/vnl_types.h"
@@ -73,6 +78,11 @@ static void vk_context_init_instance_create_info(VkContext* vkctx) {
 }
 
 static VnlStatus vk_context_init(const VnlConfig* config, VkContext* vkctx) {
+    CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
+    CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
+
+    CLARITY_LOG_INFO("Initializing Vulkan Instance.");
+
     u32 extension_count = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
 
@@ -82,12 +92,16 @@ static VnlStatus vk_context_init(const VnlConfig* config, VkContext* vkctx) {
     vk_context_init_instance_create_info(vkctx);
 
     VkResult result = vkCreateInstance(&vkctx->create_info, NULL, &instance);
+    
+    CLARITY_ASSERT(result == VK_SUCCESS, "vkCreateInstance failed.");
+
     if (result != VK_SUCCESS) {
-        printf("Failed to create vulkan context.\n");
+        CLARITY_LOG_WARN("Failed to create Vulkan context.");
         return VNL_ERROR_VULKAN_INSTANCE_CREATION_FAILED;
     }
 
     vkctx->instance = instance;
+    CLARITY_LOG_INFO("Vulkan Instance created successfully.");
     return VNL_SUCCESS;
 }
 
@@ -107,6 +121,9 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSu
     and get the queue families proper
     */
     VkQueueFamilyProperties* queue_families = malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
+    
+    CLARITY_ASSERT(queue_families != NULL, "Memory allocation failed for queue_families.");
+
     if (!queue_families) {
         return indices;
     }
@@ -138,16 +155,26 @@ static bool vk_is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 }
 
 static VnlStatus vk_pick_physical_device(VkContext* vkctx) {
+    CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
+    CLARITY_ASSERT(vkctx->instance != VK_NULL_HANDLE, "Vulkan Instance cannot be NULL.");
+
+    CLARITY_LOG_INFO("Picking Vulkan Physical Device.");
+
     VkPhysicalDevice physical_device = VK_NULL_HANDLE;
     u32 device_count = 0;
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, NULL);
 
+    CLARITY_ASSERT(device_count > 0, "No GPU with Vulkan support found.");
+
     if (device_count == 0) {
-        printf("Failed to find a GPU with Vulkan support.\n");
+        CLARITY_LOG_WARN("Failed to find a GPU with Vulkan support.");
         return VNL_ERROR_PHYSICAL_DEVICE_NOT_FOUND;
     }
 
     VkPhysicalDevice* devices = malloc(sizeof(VkPhysicalDevice) * device_count);
+    
+    CLARITY_ASSERT(devices != NULL, "Memory allocation failed for physical devices list.");
+
     if (!devices) {
         return VNL_ERROR_OUT_OF_MEMORY;
     }
@@ -162,17 +189,24 @@ static VnlStatus vk_pick_physical_device(VkContext* vkctx) {
 
     free(devices);
 
+    CLARITY_ASSERT(physical_device != VK_NULL_HANDLE, "No suitable GPU found.");
+
     if (physical_device == VK_NULL_HANDLE) {
-        printf("Failed to find a GPU with Vulkan support.\n");
+        CLARITY_LOG_WARN("Failed to find a GPU with Vulkan support.");
         return VNL_ERROR_PHYSICAL_DEVICE_NOT_FOUND;
     }
 
     vkctx->physical_device = physical_device;
-
+    CLARITY_LOG_INFO("Vulkan Physical Device picked successfully.");
     return VNL_SUCCESS;
 }
 
 static VnlStatus vk_create_logical_device(VkContext* vkctx) {
+    CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
+    CLARITY_ASSERT(vkctx->physical_device != VK_NULL_HANDLE, "Physical device cannot be NULL.");
+
+    CLARITY_LOG_INFO("Creating Vulkan Logical Device.");
+
     VkPhysicalDeviceFeatures device_features = { 0 };
     VkQueueFamilyIndices indices = vk_find_queue_families(vkctx->physical_device,
                                                           vkctx->surface);
@@ -200,55 +234,101 @@ static VnlStatus vk_create_logical_device(VkContext* vkctx) {
         .pEnabledFeatures = &device_features
     };
 
-    if (vkCreateDevice(vkctx->physical_device,
-                       &create_info,
-                       NULL, &vkctx->device) != VK_SUCCESS) {
-        printf("Failed to create logical device.\n");
+    VkResult result = vkCreateDevice(vkctx->physical_device,
+                                     &create_info,
+                                     NULL, &vkctx->device);
+    
+    CLARITY_ASSERT(result == VK_SUCCESS, "vkCreateDevice failed.");
+
+    if (result != VK_SUCCESS) {
+        CLARITY_LOG_WARN("Failed to create logical device.");
         return VNL_ERROR_LOGICAL_DEVICE_CREATION_FAILED;
     }
 
     vkGetDeviceQueue(vkctx->device, indices.graphics_family, 0, &vkctx->graphics_queue);
-
+    
+    CLARITY_LOG_INFO("Vulkan Logical Device created successfully.");
     return VNL_SUCCESS;
 }
 
 static VnlStatus vk_create_surface(VkContext* vkctx, GLFWwindow* window) {
+    CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
+    CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
+
+    CLARITY_LOG_INFO("Creating Vulkan Window Surface.");
+
     VkResult result = glfwCreateWindowSurface(vkctx->instance,
                                               window,
                                               NULL,
                                               &vkctx->surface);
 
+    CLARITY_ASSERT(result == VK_SUCCESS, "glfwCreateWindowSurface failed.");
+
     if (result != VK_SUCCESS) {
+        CLARITY_LOG_WARN("Failed to create Vulkan window surface.");
         return VNL_ERROR_SURFACE_CREATION_FAILED;
     }
 
+    CLARITY_LOG_INFO("Vulkan Window Surface created successfully.");
     return VNL_SUCCESS;
 }
 
 VnlStatus vulkan_init(const VnlConfig* config, GLFWwindow* window, VkContext** out_ctx) {
+    CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
+    CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
+    CLARITY_ASSERT(out_ctx != NULL, "out_ctx pointer cannot be NULL.");
+
+    CLARITY_LOG_INFO("Initializing Vulkan Context.");
+
     VkContext* vkctx = calloc(1, sizeof(VkContext));
+    
+    CLARITY_ASSERT(vkctx != NULL, "Memory allocation failed for VkContext.");
+
     if (!vkctx) return VNL_ERROR_OUT_OF_MEMORY;
 
     VnlStatus status;
     
-    if ((status = vk_context_init(config, vkctx)) != VNL_SUCCESS) goto cleanup;
-    if ((status = vk_create_surface(vkctx, window)) != VNL_SUCCESS) goto cleanup;
-    if ((status = vk_pick_physical_device(vkctx)) != VNL_SUCCESS) goto cleanup;
-    if ((status = vk_create_logical_device(vkctx)) != VNL_SUCCESS) goto cleanup;
+    status = vk_context_init(config, vkctx);
+    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_context_init failed.");
+    if (status != VNL_SUCCESS) goto cleanup;
+
+    status = vk_create_surface(vkctx, window);
+    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_create_surface failed.");
+    if (status != VNL_SUCCESS) goto cleanup;
+
+    status = vk_pick_physical_device(vkctx);
+    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_pick_physical_device failed.");
+    if (status != VNL_SUCCESS) goto cleanup;
+
+    status = vk_create_logical_device(vkctx);
+    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_create_logical_device failed.");
+    if (status != VNL_SUCCESS) goto cleanup;
 
     *out_ctx = vkctx;
+    CLARITY_LOG_INFO("Vulkan Context initialized successfully.");
     return VNL_SUCCESS;
 
 cleanup:
+    CLARITY_LOG_WARN("Vulkan Context initialization failed. Cleaning up...");
     vulkan_shutdown(vkctx);
     return status;
 }
 
 void vulkan_shutdown(VkContext* vkctx) {
     if (vkctx) {
-        vkDestroyDevice(vkctx->device, NULL);
-        vkDestroySurfaceKHR(vkctx->instance, vkctx->surface, NULL);
-        vkDestroyInstance(vkctx->instance, NULL);
+        CLARITY_LOG_INFO("Shutting down Vulkan Context.");
+
+        if (vkctx->device != VK_NULL_HANDLE) {
+            vkDestroyDevice(vkctx->device, NULL);
+        }
+        if (vkctx->instance != VK_NULL_HANDLE && vkctx->surface != VK_NULL_HANDLE) {
+            vkDestroySurfaceKHR(vkctx->instance, vkctx->surface, NULL);
+        }
+        if (vkctx->instance != VK_NULL_HANDLE) {
+            vkDestroyInstance(vkctx->instance, NULL);
+        }
         free(vkctx);
+
+        CLARITY_LOG_INFO("Vulkan Context shut down successfully.");
     }
 }

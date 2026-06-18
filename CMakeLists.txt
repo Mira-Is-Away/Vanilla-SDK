@@ -17,6 +17,13 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
+FetchContent_Declare(
+    mira_clarity
+    GIT_REPOSITORY https://github.com/Mira-Is-Away/Clarity-Debugger.git
+    GIT_TAG        v0.1.1
+)
+FetchContent_MakeAvailable(mira_clarity)
+
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -37,6 +44,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     glfw
+    mira_clarity
     Vulkan::Vulkan
     Threads::Threads
     ${CMAKE_DL_LIBS}
