@@ -10,15 +10,10 @@
 #ifndef VANILLA_VNL_DS_LIST_H_
 #define VANILLA_VNL_DS_LIST_H_
 
-#include "misc/vnl_types.h"
+#include <misc/vnl_status.h>
+#include <misc/vnl_types.h>
 
 typedef struct VnlListNode {
-    /*
-    Pointer to the actual data in memory.
-    Not great for fast iteration through
-    each node, since cache misses will be
-    nearly guaranteed.
-    */
     void* data;
     u32 size;
 
@@ -33,10 +28,20 @@ typedef struct VnlList {
 } VnlList;
 
 /**
- * @brief Create a VnlList object and allocates a head node.
- * @return A pointer to the list object that has been created.
+ * @brief Macro to iterate over each node in a VnlList.
+ * @param node_var The name of the VnlListNode* variable to define for iteration.
+ * @param list A pointer to the VnlList object.
  */
-VnlList* vnl_list_create();
+#define vnl_list_foreach(node_var, list) \
+    for (VnlListNode* node_var = (list)->head; node_var != NULL; node_var = node_var->next)
+
+/**
+ * @brief Create a VnlList object and allocates a head node.
+ * @return The status of the operation.
+ * @param list A pointer to the VnlList object
+ */
+VnlStatus vnl_list_create(VnlList *list);
+
 
 /**
  * @brief Insert a node at the start of the list.
@@ -45,7 +50,21 @@ VnlList* vnl_list_create();
  * @param size The size of the data in bytes.
  * @return A pointer to the list object. Mostly useful for chaining.
  */
-VnlList* vnl_list_pushfront(VnlList* list, void* data, u32 size);
+VnlStatus vnl_list_pushfront_default(VnlList* list, const void* data, u32 size);
+
+/**
+ * @brief Insert a node containing a string at the start of the list.
+ * @param list A pointer to the list object.
+ * @param data A pointer to the data to be stored.
+ * @return A pointer to the list object. Mostly useful for chaining.
+ */
+VnlStatus vnl_list_pushfront_str(VnlList* list, const char* str);
+
+#define vnl_list_append(list, item) _Generic((item), \
+    char*:          vnl_list_pushback_str(list, (char*)(item)), \
+    const char*:    vnl_list_pushback_str(list, (const char*)(item)), \
+    default:        vnl_list_pushback_default(list, &(item), sizeof(item)) \
+)
 
 /**
  * @brief Insert a node at the end of the list.
@@ -54,7 +73,15 @@ VnlList* vnl_list_pushfront(VnlList* list, void* data, u32 size);
  * @param size The size of the data in bytes.
  * @return A pointer to the list object. Mostly useful for chaining.
  */
-VnlList* vnl_list_pushback(VnlList* list, void* data, u32 size);
+VnlStatus vnl_list_pushback_default(VnlList* list, const void* data, u32 size);
+
+/**
+ * @brief Insert a node containing a string at the end of the list.
+ * @param list A pointer to the list object.
+ * @param data A pointer to the data to be stored.
+ * @return A pointer to the list object. Mostly useful for chaining.
+ */
+VnlStatus vnl_list_pushback_str(VnlList* list, const char* data);
 
 /**
  * @brief Retrieves the element of the list in the corresponding index.
@@ -64,5 +91,26 @@ VnlList* vnl_list_pushback(VnlList* list, void* data, u32 size);
  * @retval NULL If the element is not found.
  */
 void* vnl_list_get_element_from_index(VnlList* list, u32 index);
+
+/**
+ * VnlListDestroyCallback is used alongside vnl_list_destroy to
+ * deallocate complex structs being held inside a VnlList.
+ */
+typedef void (*VnlListDestroyCallback)(void* data);
+
+/**
+ * @brief Destroys a VnlList object and frees memory allocated by it.
+ * 
+ * This function destroys a VnlList object and its nodes. If callback
+ * is NULL, it will assume the data can be free without causing memory
+ * leaks from shallow freeing. In case you are storing complex structures
+ * with dynamically allocated memory inside the list object, you should
+ * provide this function with a pointer to a destroy function that can 
+ * properly free the resources allocated in the node.
+ * 
+ * @param list A pointer to the list object.
+ * @param callback A pointer to a callback cleanup function.
+ */
+void vnl_list_destroy(VnlList* list, VnlListDestroyCallback destroy);
 
 #endif
