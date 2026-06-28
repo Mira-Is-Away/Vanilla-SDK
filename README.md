@@ -22,7 +22,7 @@ sudo dnf install \
     cmake \
     make \
     vulkan-loader-devel \
-    vulkan-validation-layers-devel \
+    vulkan-validation-layers \
     wayland-devel \
     wayland-protocols-devel \
     libX11-devel \
