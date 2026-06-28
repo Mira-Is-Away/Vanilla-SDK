@@ -41,7 +41,7 @@ VnlStatus vnl_init(const VnlConfig* config, VnlEngine** out_engine) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(out_engine != NULL, "Output engine pointer cannot be NULL.");
 
-    CLARITY_LOG_INFO("Initializing Vanilla Engine.");
+    CLARITY_LOG_INFO("Initializing Vanilla SDK.");
 
     VnlStatus status;
 
@@ -49,7 +49,7 @@ VnlStatus vnl_init(const VnlConfig* config, VnlEngine** out_engine) {
     CLARITY_ASSERT(status == VNL_SUCCESS, "vnl_init_glfw failed.");
     if (status != VNL_SUCCESS) return status;
 
-    VnlEngine* engine = calloc(1, sizeof(VnlEngine));
+    VnlEngine* engine = CLARITY_MALLOC(sizeof(VnlEngine));
     CLARITY_ASSERT(engine != NULL, "Failed to allocate memory for VnlEngine.");
     if (!engine) return VNL_ERROR_OUT_OF_MEMORY;
 
@@ -97,7 +97,9 @@ void vnl_shutdown(VnlEngine* engine) {
     vulkan_shutdown(engine->vkctx);
     vnl_window_destroy(engine->window);
     glfwTerminate();
-    free(engine);
+    CLARITY_FREE(engine);
+
+    CLARITY_MEM_REPORT();
     
     CLARITY_LOG_INFO("Vanilla has shut down successfully.");
 }

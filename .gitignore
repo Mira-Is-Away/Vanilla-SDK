@@ -9,3 +9,7 @@
 *.vcxproj*
 *.sln
 .vs
+out/
+
+# CMake Clutter
+CMakeSettings.json

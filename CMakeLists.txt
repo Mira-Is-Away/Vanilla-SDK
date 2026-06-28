@@ -53,15 +53,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 if(MSVC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
     target_compile_options(${PROJECT_NAME} PRIVATE
-        $<$<CONFIG:Debug>:/W4 /Zi /0d /utf-8 /permissive->
-        $<$<CONFIG:Release>:/02 /DNDEBUG>
-        $<$<CONFIG:RelWithDebInfo>:/02 /Zi>
+        $<$<CONFIG:Debug>:/W4 /Zi /Od /utf-8 /permissive->
+        $<$<CONFIG:Release>:/O2 /DNDEBUG>
+        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
     )
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic -Werror>
-        $<$<CONFIG:Release>:-03 -DNDEBUG>
-        $<$<CONFIG:RelWithDebInfo>: -02 -g>
-        $<$<CONFIG:MinSizeRel>:-0s -DNDEBUG>
+        $<$<CONFIG:Release>:-O3 -DNDEBUG>
+        $<$<CONFIG:RelWithDebInfo>: -O2 -g>
+        $<$<CONFIG:MinSizeRel>:-Os -DNDEBUG>
     )
 endif()
