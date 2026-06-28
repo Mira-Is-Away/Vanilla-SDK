@@ -20,7 +20,7 @@ FetchContent_MakeAvailable(glfw)
 FetchContent_Declare(
     mira_clarity
     GIT_REPOSITORY https://github.com/Mira-Is-Away/Clarity-Debugger.git
-    GIT_TAG        v0.1.1
+    GIT_TAG        main
 )
 FetchContent_MakeAvailable(mira_clarity)
 
