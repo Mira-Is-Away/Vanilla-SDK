@@ -35,28 +35,32 @@ typedef struct VkContext {
     VkSurfaceKHR surface;
 } VkContext;
 
-static void vk_context_init_app_info(const VnlConfig *config, VkContext *vkctx) {
+static void vk_context_init_app_info(const VnlConfig *config,
+                                     VkContext *vkctx) {
     VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = NULL,
         .pApplicationName = config->title,
         .applicationVersion =
-            VK_MAKE_VERSION(config->version.major, config->version.minor, config->version.patch),
+            VK_MAKE_VERSION(config->version.major, config->version.minor,
+                            config->version.patch),
         .pEngineName = "Vanilla",
-        .engineVersion = VK_MAKE_VERSION(VNL_ENGINE_VERSION_MAJOR, VNL_ENGINE_VERSION_MINOR,
-                                         VNL_ENGINE_VERSION_PATCH),
+        .engineVersion =
+            VK_MAKE_VERSION(VNL_ENGINE_VERSION_MAJOR, VNL_ENGINE_VERSION_MINOR,
+                            VNL_ENGINE_VERSION_PATCH),
         .apiVersion = VK_API_VERSION_1_0};
 
     vkctx->app_info = app_info;
 }
 
 static void vk_context_init_instance_create_info(VkContext *vkctx) {
-    VkInstanceCreateInfo create_info = {.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                        .pNext = NULL,
-                                        .flags = 0,
-                                        .pApplicationInfo = &vkctx->app_info,
-                                        .enabledLayerCount = 0,
-                                        .ppEnabledLayerNames = 0};
+    VkInstanceCreateInfo create_info = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .pApplicationInfo = &vkctx->app_info,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = 0};
 
     u32 glfw_extension_count = 0;
     const char **glfw_extensions;
@@ -96,8 +100,10 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     return VNL_SUCCESS;
 }
 
-static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) {
-    VkQueueFamilyIndices indices = {.has_graphics_family = false, .graphics_family = 0};
+static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
+                                                   VkSurfaceKHR surface) {
+    VkQueueFamilyIndices indices = {.has_graphics_family = false,
+                                    .graphics_family = 0};
 
     // Get the amount of queue families available
     u32 queue_family_count = 0;
@@ -110,12 +116,14 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSu
     VkQueueFamilyProperties *queue_families =
         malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
 
-    CLARITY_ASSERT(queue_families != NULL, "Memory allocation failed for queue_families.");
+    CLARITY_ASSERT(queue_families != NULL,
+                   "Memory allocation failed for queue_families.");
 
     if (!queue_families) {
         return indices;
     }
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count,
+                                             queue_families);
 
     for (u32 i = 0; i < queue_family_count; i++) {
         if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
@@ -124,7 +132,8 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSu
         }
 
         VkBool32 present_support = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface,
+                                             &present_support);
         if (present_support) {
             indices.present_family = i;
             indices.has_present_family = true;
@@ -138,14 +147,16 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device, VkSu
     return indices;
 }
 
-static bool vk_is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface) {
+static bool vk_is_device_suitable(VkPhysicalDevice device,
+                                  VkSurfaceKHR surface) {
     VkQueueFamilyIndices indices = vk_find_queue_families(device, surface);
     return indices.has_graphics_family && indices.has_present_family;
 }
 
 static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
-    CLARITY_ASSERT(vkctx->instance != VK_NULL_HANDLE, "Vulkan Instance cannot be NULL.");
+    CLARITY_ASSERT(vkctx->instance != VK_NULL_HANDLE,
+                   "Vulkan Instance cannot be NULL.");
 
     CLARITY_LOG_INFO("Picking Vulkan Physical Device.");
 
@@ -162,7 +173,8 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
 
     VkPhysicalDevice *devices = malloc(sizeof(VkPhysicalDevice) * device_count);
 
-    CLARITY_ASSERT(devices != NULL, "Memory allocation failed for physical devices list.");
+    CLARITY_ASSERT(devices != NULL,
+                   "Memory allocation failed for physical devices list.");
 
     if (!devices) {
         return VNL_ERROR_OUT_OF_MEMORY;
@@ -192,23 +204,26 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
 
 static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
-    CLARITY_ASSERT(vkctx->physical_device != VK_NULL_HANDLE, "Physical device cannot be NULL.");
+    CLARITY_ASSERT(vkctx->physical_device != VK_NULL_HANDLE,
+                   "Physical device cannot be NULL.");
 
     CLARITY_LOG_INFO("Creating Vulkan Logical Device.");
 
     VkPhysicalDeviceFeatures device_features = {0};
-    VkQueueFamilyIndices indices = vk_find_queue_families(vkctx->physical_device, vkctx->surface);
+    VkQueueFamilyIndices indices =
+        vk_find_queue_families(vkctx->physical_device, vkctx->surface);
 
     f32 queue_priority = 1.0f;
-    VkDeviceQueueCreateInfo queue_create_info = {.sType =
-                                                     VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                                                 .pNext = NULL,
-                                                 .flags = 0,
-                                                 .queueFamilyIndex = indices.graphics_family,
-                                                 .queueCount = 1,
-                                                 .pQueuePriorities = &queue_priority};
+    VkDeviceQueueCreateInfo queue_create_info = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .queueFamilyIndex = indices.graphics_family,
+        .queueCount = 1,
+        .pQueuePriorities = &queue_priority};
 
-    VkDeviceCreateInfo create_info = {.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    VkDeviceCreateInfo create_info = {.sType =
+                                          VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                       .pNext = NULL,
                                       .flags = 0,
                                       .queueCreateInfoCount = 1,
@@ -219,7 +234,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
                                       .ppEnabledExtensionNames = NULL,
                                       .pEnabledFeatures = &device_features};
 
-    VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL, &vkctx->device);
+    VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL,
+                                     &vkctx->device);
 
     CLARITY_ASSERT(result == VK_SUCCESS, "vkCreateDevice failed.");
 
@@ -228,7 +244,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         return VNL_ERROR_LOGICAL_DEVICE_CREATION_FAILED;
     }
 
-    vkGetDeviceQueue(vkctx->device, indices.graphics_family, 0, &vkctx->graphics_queue);
+    vkGetDeviceQueue(vkctx->device, indices.graphics_family, 0,
+                     &vkctx->graphics_queue);
 
     CLARITY_LOG_INFO("Vulkan Logical Device created successfully.");
     return VNL_SUCCESS;
@@ -240,7 +257,8 @@ static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
 
     CLARITY_LOG_INFO("Creating Vulkan Window Surface.");
 
-    VkResult result = glfwCreateWindowSurface(vkctx->instance, window, NULL, &vkctx->surface);
+    VkResult result =
+        glfwCreateWindowSurface(vkctx->instance, window, NULL, &vkctx->surface);
 
     CLARITY_ASSERT(result == VK_SUCCESS, "glfwCreateWindowSurface failed.");
 
@@ -253,7 +271,8 @@ static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
     return VNL_SUCCESS;
 }
 
-VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window, VkContext **out_ctx) {
+VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
+                      VkContext **out_ctx) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
     CLARITY_ASSERT(out_ctx != NULL, "out_ctx pointer cannot be NULL.");
@@ -306,7 +325,8 @@ void vulkan_shutdown(VkContext *vkctx) {
         if (vkctx->device != VK_NULL_HANDLE) {
             vkDestroyDevice(vkctx->device, NULL);
         }
-        if (vkctx->instance != VK_NULL_HANDLE && vkctx->surface != VK_NULL_HANDLE) {
+        if (vkctx->instance != VK_NULL_HANDLE &&
+            vkctx->surface != VK_NULL_HANDLE) {
             vkDestroySurfaceKHR(vkctx->instance, vkctx->surface, NULL);
         }
         if (vkctx->instance != VK_NULL_HANDLE) {

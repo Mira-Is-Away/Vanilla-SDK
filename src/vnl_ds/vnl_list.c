@@ -12,7 +12,8 @@
 #include <mira/clarity.h>
 
 /*
-Henry: this file is a great candidate for usage of a traceback feature in Clarity
+Henry: this file is a great candidate for usage of a traceback feature in
+Clarity
 */
 
 static VnlListNode *vnl_list_create_node(const void *data, u32 size) {
@@ -40,7 +41,8 @@ static VnlListNode *vnl_list_create_node(const void *data, u32 size) {
 
 VnlStatus vnl_list_create(VnlList *list) {
     if (!list) {
-        CLARITY_LOG_WARN("Attempted to initialise VnlList object from NULL pointer.");
+        CLARITY_LOG_WARN(
+            "Attempted to initialise VnlList object from NULL pointer.");
         return VNL_FAILURE;
     }
 
@@ -51,7 +53,8 @@ VnlStatus vnl_list_create(VnlList *list) {
     return VNL_SUCCESS;
 }
 
-VnlStatus vnl_list_pushfront_default(VnlList *list, const void *data, u32 size) {
+VnlStatus vnl_list_pushfront_default(VnlList *list, const void *data,
+                                     u32 size) {
     if (!list) {
         CLARITY_LOG_WARN("Attemped to add item to NULL list.");
         return VNL_FAILURE;
@@ -83,7 +86,8 @@ VnlStatus vnl_list_pushfront_str(VnlList *list, const char *str) {
         return VNL_FAILURE;
     }
 
-    return vnl_list_pushfront_default(list, (const void *)str, (u32)(strlen(str) + 1));
+    return vnl_list_pushfront_default(list, (const void *)str,
+                                      (u32)(strlen(str) + 1));
 }
 
 VnlStatus vnl_list_pushback_default(VnlList *list, const void *data, u32 size) {
@@ -118,7 +122,8 @@ VnlStatus vnl_list_pushback_str(VnlList *list, const char *str) {
         return VNL_FAILURE;
     }
 
-    return vnl_list_pushback_default(list, (const void *)str, (u32)(strlen(str) + 1));
+    return vnl_list_pushback_default(list, (const void *)str,
+                                     (u32)(strlen(str) + 1));
 }
 
 void *vnl_list_get_element_from_index(VnlList *list, u32 index) {

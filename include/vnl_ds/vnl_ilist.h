@@ -36,57 +36,71 @@ typedef struct VnlIList {
  * @brief Retrieves the parent structure from a list link pointer.
  * @param ptr Pointer to the VnlIListLink.
  * @param type The type of the parent structure.
- * @param member The name of the VnlIListLink member within the parent structure.
+ * @param member The name of the VnlIListLink member within the parent
+ * structure.
  */
-#define vnl_ilist_container_of(ptr, type, member) ((type *)((char *)(ptr) - offsetof(type, member)))
+#define vnl_ilist_container_of(ptr, type, member)                              \
+    ((type *)((char *)(ptr) - offsetof(type, member)))
 
 /**
  * @brief Simple iteration over the list links.
  * @param ptr A valid pointer to the desired object's type.
  * @param list Pointer to the list link.
  */
-#define vnl_ilist_for_each(ptr, list) for (ptr = (list)->head; ptr != NULL; ptr = ptr->next)
+#define vnl_ilist_for_each(ptr, list)                                          \
+    for (ptr = (list)->head; ptr != NULL; ptr = ptr->next)
 
 /**
  * @brief Iteration safe against removal of the current link.
  * @param ptr A valid pointer to the desired object's type.
- * @param next Must be another valid pointer of the desired object type. Used for internal safety
- * safeguards. param list Pointer to the list link.
+ * @param next Must be another valid pointer of the desired object type. Used
+ * for internal safety safeguards. param list Pointer to the list link.
  */
-#define vnl_ilist_for_each_safe(ptr, next, list)                                                   \
-    for (ptr = (list)->head, next = (ptr ? ptr->next : NULL); ptr != NULL;                         \
+#define vnl_ilist_for_each_safe(ptr, next, list)                               \
+    for (ptr = (list)->head, next = (ptr ? ptr->next : NULL); ptr != NULL;     \
          ptr = next, next = (ptr ? ptr->next : NULL))
 
 /**
- * @brief Iterates over the list and provides the parent structure pointer directly.
+ * @brief Iterates over the list and provides the parent structure pointer
+ * directly.
  * @param ptr A valid pointer to the desired object's type.
  * @param type The type of the parent structure.
  * @param list Pointer to the list link.
- * @param member The name of the struct field that holds the pointers to the nodes on the list.
+ * @param member The name of the struct field that holds the pointers to the
+ * nodes on the list.
  */
-#define vnl_ilist_for_each_entry(ptr, type, list, member)                                          \
-    for (ptr = ((list)->head ? vnl_ilist_container_of((list)->head, type, member) : NULL);         \
-         ptr != NULL;                                                                              \
-         ptr = (ptr->member.next ? vnl_ilist_container_of(ptr->member.next, type, member) : NULL))
+#define vnl_ilist_for_each_entry(ptr, type, list, member)                      \
+    for (ptr = ((list)->head                                                   \
+                    ? vnl_ilist_container_of((list)->head, type, member)       \
+                    : NULL);                                                   \
+         ptr != NULL;                                                          \
+         ptr = (ptr->member.next                                               \
+                    ? vnl_ilist_container_of(ptr->member.next, type, member)   \
+                    : NULL))
 
 /**
  * @brief Iterates over the list entries safely (allows removal).
  * @param ptr A valid pointer of the desired object's type.
- * @param next A pointer of the same type as ptr. The macro will use it to iterate over the list. It
- * doesn't need to be initialised.
+ * @param next A pointer of the same type as ptr. The macro will use it to
+ * iterate over the list. It doesn't need to be initialised.
  * @param type The type of the parent structure.
  * @param list A pointer to the list link.
- * @param member The name of the struct field that holds the pointers to the nodes on the list.
+ * @param member The name of the struct field that holds the pointers to the
+ * nodes on the list.
  */
 
 /* you're not expected to understand this */
-#define vnl_ilist_for_each_entry_safe(ptr, next, type, list, member)                               \
-    for (ptr = ((list)->head ? vnl_ilist_container_of((list)->head, type, member) : NULL),         \
-        next = ((ptr && ptr->member.next) ? vnl_ilist_container_of(ptr->member.next, type, member) \
-                                          : NULL);                                                 \
-         ptr != NULL; ptr = next,                                                                  \
-        next = ((ptr && ptr->member.next) ? vnl_ilist_container_of(ptr->member.next, type, member) \
-                                          : NULL))
+#define vnl_ilist_for_each_entry_safe(ptr, next, type, list, member)           \
+    for (ptr = ((list)->head                                                   \
+                    ? vnl_ilist_container_of((list)->head, type, member)       \
+                    : NULL),                                                   \
+        next = ((ptr && ptr->member.next)                                      \
+                    ? vnl_ilist_container_of(ptr->member.next, type, member)   \
+                    : NULL);                                                   \
+         ptr != NULL; ptr = next,                                              \
+        next = ((ptr && ptr->member.next)                                      \
+                    ? vnl_ilist_container_of(ptr->member.next, type, member)   \
+                    : NULL))
 
 /**
  * @brief Initializes a list head.

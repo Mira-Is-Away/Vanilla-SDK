@@ -29,11 +29,13 @@ typedef struct VnlList {
 
 /**
  * @brief Macro to iterate over each node in a VnlList.
- * @param node_var The name of the VnlListNode* variable to define for iteration.
+ * @param node_var The name of the VnlListNode* variable to define for
+ * iteration.
  * @param list A pointer to the VnlList object.
  */
-#define vnl_list_foreach(node_var, list)                                                           \
-    for (VnlListNode *node_var = (list)->head; node_var != NULL; node_var = node_var->next)
+#define vnl_list_foreach(node_var, list)                                       \
+    for (VnlListNode *node_var = (list)->head; node_var != NULL;               \
+         node_var = node_var->next)
 
 /**
  * @brief Create a VnlList object and allocates a head node.
@@ -59,10 +61,10 @@ VnlStatus vnl_list_pushfront_default(VnlList *list, const void *data, u32 size);
  */
 VnlStatus vnl_list_pushfront_str(VnlList *list, const char *str);
 
-#define vnl_list_append(list, item)                                                                \
-    _Generic((item),                                                                               \
-        char *: vnl_list_pushback_str(list, (char *)(item)),                                       \
-        const char *: vnl_list_pushback_str(list, (const char *)(item)),                           \
+#define vnl_list_append(list, item)                                            \
+    _Generic((item),                                                           \
+        char *: vnl_list_pushback_str(list, (char *)(item)),                   \
+        const char *: vnl_list_pushback_str(list, (const char *)(item)),       \
         default: vnl_list_pushback_default(list, &(item), sizeof(item)))
 
 /**

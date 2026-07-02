@@ -16,14 +16,14 @@ VnlStatus vnl_window_create(const VnlConfig *config, GLFWwindow **out_window) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(out_window != NULL, "Output window pointer cannot be NULL.");
 
-    CLARITY_LOG_INFO("Creating GLFW window: %s (%dx%d)", config->title, config->window.width,
-                     config->window.height);
+    CLARITY_LOG_INFO("Creating GLFW window: %s (%dx%d)", config->title,
+                     config->window.width, config->window.height);
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    GLFWwindow *window =
-        glfwCreateWindow(config->window.width, config->window.height, config->title, NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(
+        config->window.width, config->window.height, config->title, NULL, NULL);
 
     CLARITY_ASSERT(window != NULL, "Failed to create GLFW window.");
 

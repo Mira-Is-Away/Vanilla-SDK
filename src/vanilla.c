@@ -88,8 +88,8 @@ void vnl_run(VnlEngine *engine) {
         glfwPollEvents();
     }*/
 
-    CLARITY_LOG_WARN(
-        "vnl_run() has been called. This function is currently a dummy; Shutting down...");
+    CLARITY_LOG_WARN("vnl_run() has been called. This function is currently a "
+                     "dummy; Shutting down...");
 }
 
 void vnl_shutdown(VnlEngine *engine) {

@@ -20,10 +20,10 @@
  * Usage:
  * VnlConfig config = VNL_DEFAULT_CONFIG;
  */
-#define VNL_DEFAULT_CONFIG                                                                         \
-    {.window = {1280, 720},                                                                        \
-     .version = {0, 0, 0},                                                                         \
-     .title = "Untitled Vanilla Project",                                                          \
+#define VNL_DEFAULT_CONFIG                                                     \
+    {.window = {1280, 720},                                                    \
+     .version = {0, 0, 0},                                                     \
+     .title = "Untitled Vanilla Project",                                      \
      .target_fps = 60.0f}
 
 #endif
