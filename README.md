@@ -10,7 +10,9 @@ The `dev` branch is used in active development for untested code and should neve
 
 ## Prerequisites
 
-To compile this project, you need a C17-compatible compiler and CMake 3.22+.
+To compile this project, you need a C17-compatible compiler, the Ninja build system and CMake 3.22+.
+
+It is highly recommended to install `clang-format`, since it is used by this project's CMake configuration to automatically format the codebase before compilation. Note that, while it is listed among the project's dependencies, it is, in fact, optional, and the project will still compile if the package isn't found (although automatic formatting will be turned off.
 
 ### Dependencies (Linux)
 
@@ -20,7 +22,8 @@ For Fedora/Red Hat-based systems, you can install the required development heade
 sudo dnf install \
     gcc \
     cmake \
-    make \
+    ninja-build \
+    clang-tools-extra \
     vulkan-loader-devel \
     vulkan-validation-layers \
     wayland-devel \
@@ -40,7 +43,8 @@ For Ubuntu/Debian-based systems, the equivalents are:
 sudo apt-get install \
     build-essential \
     cmake \
-    make \
+    ninja-build \
+    clang-format \
     libvulkan-dev \
     libwayland-dev \
     vulkan-validationlayers-dev \
@@ -65,6 +69,6 @@ Use the provided build script (this will compile in Debug mode by default):
 Or manually:
 
 ```bash
-cmake -B bin
+cmake --preset default-linux
 cmake --build bin --config Debug
 ```
