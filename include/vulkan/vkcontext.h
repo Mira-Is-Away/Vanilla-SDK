@@ -1,9 +1,9 @@
 /**
  * @file vkcontext.h
- * 
+ *
  * The structure and functions dedicated to storing
  * Vulkan context information.
- * 
+ *
  * @author Henry R
  * @date 2025-12-09
  */
@@ -32,7 +32,7 @@ typedef struct VkContext VkContext;
  * @return Returns a pointer to valid VkContext.
  * @retval NULL If context initialisation fails.
  */
-VnlStatus vulkan_init(const VnlConfig* config, GLFWwindow* window, VkContext** out_ctx);
-void vulkan_shutdown(VkContext* vkctx);
+VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window, VkContext **out_ctx);
+void vulkan_shutdown(VkContext *vkctx);
 
 #endif

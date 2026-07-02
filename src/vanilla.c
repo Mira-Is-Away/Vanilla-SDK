@@ -1,4 +1,4 @@
-#include "vanilla.h"
+#include <vanilla.h>
 
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
@@ -12,14 +12,14 @@
 #define MIRA_CLARITY_IMPL
 #include <mira/clarity.h>
 
-#include "glfw/window.h"
-#include "misc/vnl_types.h"
-#include "vulkan/vkcontext.h"
+#include <glfw/window.h>
+#include <misc/vnl_types.h>
+#include <vulkan/vkcontext.h>
 
 struct VnlEngine {
-    const VnlConfig* config;
-    GLFWwindow* window;
-    VkContext* vkctx;
+    const VnlConfig *config;
+    GLFWwindow *window;
+    VkContext *vkctx;
 };
 
 static VnlStatus vnl_init_glfw() {
@@ -37,21 +37,23 @@ static VnlStatus vnl_init_glfw() {
     return VNL_SUCCESS;
 }
 
-VnlStatus vnl_init(const VnlConfig* config, VnlEngine** out_engine) {
+VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(out_engine != NULL, "Output engine pointer cannot be NULL.");
 
-    CLARITY_LOG_INFO("Initializing Vanilla SDK.");
+    CLARITY_LOG_INFO("Initializing Vanilla SDK Components.");
 
     VnlStatus status;
 
     status = vnl_init_glfw();
     CLARITY_ASSERT(status == VNL_SUCCESS, "vnl_init_glfw failed.");
-    if (status != VNL_SUCCESS) return status;
+    if (status != VNL_SUCCESS)
+        return status;
 
-    VnlEngine* engine = CLARITY_MALLOC(sizeof(VnlEngine));
+    VnlEngine *engine = CLARITY_MALLOC(sizeof(VnlEngine));
     CLARITY_ASSERT(engine != NULL, "Failed to allocate memory for VnlEngine.");
-    if (!engine) return VNL_ERROR_OUT_OF_MEMORY;
+    if (!engine)
+        return VNL_ERROR_OUT_OF_MEMORY;
 
     engine->config = config;
 
@@ -75,22 +77,25 @@ VnlStatus vnl_init(const VnlConfig* config, VnlEngine** out_engine) {
     return VNL_SUCCESS;
 }
 
-void vnl_run(VnlEngine* engine) {
+void vnl_run(VnlEngine *engine) {
     CLARITY_ASSERT(engine != NULL, "Engine pointer is NULL.");
     CLARITY_ASSERT(engine->window != NULL, "Engine window pointer is NULL.");
-    if (!engine || !engine->window) return;
+    if (!engine || !engine->window)
+        return;
 
     /*
     while(!glfwWindowShouldClose(engine->window)) {
         glfwPollEvents();
     }*/
 
-    CLARITY_LOG_INFO("vnl_run() has been called. This function is currently a dummy; Shutting down...");
+    CLARITY_LOG_WARN(
+        "vnl_run() has been called. This function is currently a dummy; Shutting down...");
 }
 
-void vnl_shutdown(VnlEngine* engine) {
+void vnl_shutdown(VnlEngine *engine) {
     CLARITY_ASSERT(engine != NULL, "Engine pointer is NULL.");
-    if (!engine) return;
+    if (!engine)
+        return;
 
     CLARITY_LOG_INFO("Shutting down Vanilla Engine.");
 
@@ -100,6 +105,6 @@ void vnl_shutdown(VnlEngine* engine) {
     CLARITY_FREE(engine);
 
     CLARITY_MEM_REPORT();
-    
+
     CLARITY_LOG_INFO("Vanilla has shut down successfully.");
 }

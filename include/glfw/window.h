@@ -1,8 +1,8 @@
 /**
  * @file window.h
- * 
+ *
  * Defines utility functions to handle windows within the engine.
- * 
+ *
  * @date 17-03-26
  * @author Henry R
  */
@@ -24,12 +24,12 @@ typedef struct VnlWindow VnlWindow;
  * @param[out] out_window A pointer to store the created window handle.
  * @retval VNL_SUCCESS If window creation was successful.
  */
-VnlStatus vnl_window_create(const VnlConfig* config, GLFWwindow** out_window);
+VnlStatus vnl_window_create(const VnlConfig *config, GLFWwindow **out_window);
 
 /**
  * @brief Destroys a GLFW window.
  * @param window The window handle to destroy.
  */
-void vnl_window_destroy(GLFWwindow* window);
+void vnl_window_destroy(GLFWwindow *window);
 
 #endif
