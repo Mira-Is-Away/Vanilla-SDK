@@ -46,6 +46,7 @@ if(CLANG_FORMAT_EXE)
     )
 else()
     message(WARNING "clang-format not found. Automatic code formatting at compile-time will not be available.")
+    add_custom_target(Format)
 endif()
 
 add_executable(${PROJECT_NAME})
