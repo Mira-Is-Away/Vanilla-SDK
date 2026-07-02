@@ -4,6 +4,7 @@ project(vanilla C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo;MinSizeRel" CACHE STRING "" FORCE)
 
 include(FetchContent)
 
@@ -27,7 +28,30 @@ FetchContent_MakeAvailable(mira_clarity)
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
+
+# Enables automatic formatting if clang-format is installed.
+find_program(CLANG_FORMAT_EXE NAMES clang-format)
+
+if(CLANG_FORMAT_EXE)
+    file(GLOB_RECURSE ALL_SOURCE_FILES 
+        CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c" 
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
+    )
+
+    add_custom_target(Format
+        COMMAND ${CLANG_FORMAT_EXE} -i ${ALL_SOURCE_FILES}
+        COMMENT "Formatting all source files with clang-format..."
+        VERBATIM
+    )
+else()
+    message(WARNING "clang-format not found. Automatic code formatting at compile-time will not be available.")
+    add_custom_target(Format)
+endif()
+
 add_executable(${PROJECT_NAME})
+
+add_dependencies(${PROJECT_NAME} Format)
 
 target_sources(${PROJECT_NAME} PRIVATE
     main.c

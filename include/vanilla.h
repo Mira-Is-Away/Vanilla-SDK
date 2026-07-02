@@ -1,8 +1,8 @@
 /**
  * @file vanilla.h
- * 
+ *
  * The entry point to interact with the Vanilla engine.
- * 
+ *
  * @author Henry R
  * @date 2025-12-09
  */
@@ -26,18 +26,18 @@ typedef struct VnlEngine VnlEngine;
  * @param[out] out_engine A pointer to store the created engine instance.
  * @retval VNL_SUCCESS If initialisation was successful.
  */
-VnlStatus vnl_init(const VnlConfig* config, VnlEngine** out_engine);
+VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine);
 
 /**
  * @brief Runs the engine's main loop.
  * @param[in] engine The engine instance to run.
  */
-void vnl_run(VnlEngine* engine);
+void vnl_run(VnlEngine *engine);
 
 /**
  * @brief Shuts down the engine, deallocating all used memory.
  * @param[in] engine The engine instance to shut down.
  */
-void vnl_shutdown(VnlEngine* engine);
+void vnl_shutdown(VnlEngine *engine);
 
 #endif

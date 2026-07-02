@@ -30,7 +30,7 @@ typedef struct VnlGameVersion {
 typedef struct VnlConfig {
     VnlWindow window;
     VnlGameVersion version;
-    const char* title;
+    const char *title;
     f32 target_fps;
 } VnlConfig;
 
