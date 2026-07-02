@@ -69,6 +69,6 @@ Use the provided build script (this will compile in Debug mode by default):
 Or manually:
 
 ```bash
-cmake --preset default-linux
+cmake --preset default-linux # or default-windows if compiling for Windows
 cmake --build bin --config Debug
 ```
