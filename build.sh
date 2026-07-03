@@ -1,5 +1,5 @@
 #!/bin/bash
 
 set -e
-cmake --preset default-linux
+cmake --preset default
 cmake --build bin --config Debug
