@@ -1,0 +1,33 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "dev",
+      "prerelease": "beta"
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@google/semantic-release-replace-plugin",
+      {
+        "replacements": [
+          {
+            "files": [ "CMakeLists.txt" ],
+            "from": "set\\(VANILLA_SDK_VERSION \"[^\\\"]+\"\\)",
+            "to": "set(VANILLA_SDK_VERSION \"${nextRelease.version}\")"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [ "CMakeLists.txt" ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}
