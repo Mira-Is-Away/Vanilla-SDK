@@ -2,17 +2,10 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "default-linux",
-      "displayName": "Linux Multi-Config",
-      "description": "Enforces Ninja Multi-Config for Linux systems",
+      "name": "default",
+      "displayName": "Ninja Multi-Config",
+      "description": "Enforces Ninja Multi-Config",
       "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/bin"
-    },
-    {
-      "name": "default-windows",
-      "displayName": "Windows Multi-Config",
-      "description": "Uses default Visual Studio multi-config for Windows",
-      "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/bin"
     }
   ]

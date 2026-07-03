@@ -1,7 +1,7 @@
 @echo off
 REM Windows Build Script for Vanilla Engine
 
-cmake --preset default-windows
+cmake --preset default
 
 if %ERRORLEVEL% neq 0 (
     echo CMake configuration failed.
