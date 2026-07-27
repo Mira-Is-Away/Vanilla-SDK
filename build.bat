@@ -8,7 +8,7 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-cmake --build bin --config Debug
+cmake --build build --config Debug
 if %ERRORLEVEL% neq 0 (
     echo Build failed.
     exit /b %ERRORLEVEL%

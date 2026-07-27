@@ -1,6 +1,6 @@
 # Build directories
-/bin
-/bin-*
+/build
+/build-*
 
 # Visual Studio Clutter
 *.sdf

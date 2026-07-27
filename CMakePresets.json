@@ -6,7 +6,7 @@
       "displayName": "Ninja Multi-Config",
       "description": "Enforces Ninja Multi-Config",
       "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/bin"
+      "binaryDir": "${sourceDir}/build"
     }
   ]
 }
