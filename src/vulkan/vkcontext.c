@@ -12,9 +12,9 @@
 #endif
 #include <mira/clarity.h>
 
-#include "misc/vnl_macros.h"
-#include "misc/vnl_status.h"
-#include "misc/vnl_types.h"
+#include "core/vnl_macros.h"
+#include "core/vnl_status.h"
+#include "core/vnl_types.h"
 #include "vnl_ds/vnl_list.h"
 
 typedef struct VkQueueFamilyIndices {
@@ -102,9 +102,8 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
                                                    VkSurfaceKHR surface) {
     VkQueueFamilyIndices indices = {.has_graphics_family = false,
                                     .has_present_family = false,
-                                    .graphics_family = 0
-                                    .present_family = 0;
-                                    };
+                                    .graphics_family = 0,
+                                    .present_family = 0};
 
     // Get the amount of queue families available
     u32 queue_family_count = 0;

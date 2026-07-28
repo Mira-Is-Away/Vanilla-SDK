@@ -10,7 +10,7 @@
 #include <mira/clarity.h>
 #include <stdbool.h>
 
-#include "misc/vnl_types.h"
+#include "core/vnl_types.h"
 
 VnlStatus vnl_window_create(const VnlConfig *config, GLFWwindow **out_window) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");

@@ -10,7 +10,7 @@
 #ifndef VANILLA_VNL_DS_ILIST_H_
 #define VANILLA_VNL_DS_ILIST_H_
 
-#include "misc/vnl_types.h"
+#include "core/vnl_types.h"
 #include <stddef.h>
 
 /**

@@ -1,7 +1,7 @@
 #include "vnl_ds/vnl_list.h"
 
-#include <misc/vnl_status.h>
-#include <misc/vnl_types.h>
+#include <core/vnl_status.h>
+#include <core/vnl_types.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

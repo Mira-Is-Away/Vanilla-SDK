@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "vanilla.h"
+#include "mira/vanilla.h"
 
 #include "mira/clarity.h"
 

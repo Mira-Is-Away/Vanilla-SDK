@@ -1,4 +1,4 @@
-#include <vanilla.h>
+#include <mira/vanilla.h>
 
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
@@ -12,8 +12,8 @@
 #define MIRA_CLARITY_IMPL
 #include <mira/clarity.h>
 
+#include <core/vnl_types.h>
 #include <glfw/window.h>
-#include <misc/vnl_types.h>
 #include <vulkan/vkcontext.h>
 
 struct VnlEngine {

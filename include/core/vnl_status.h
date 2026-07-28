@@ -7,8 +7,8 @@
  * @date 26-02-28
  */
 
-#ifndef VANILLA_MISC_VNL_STATUS_H_
-#define VANILLA_MISC_VNL_STATUS_H_
+#ifndef VANILLA_CORE_VNL_STATUS_H_
+#define VANILLA_CORE_VNL_STATUS_H_
 
 typedef enum VnlStatus {
     VNL_SUCCESS = 0,
