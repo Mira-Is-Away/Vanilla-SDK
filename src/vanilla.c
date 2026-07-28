@@ -27,8 +27,6 @@ static VnlStatus vnl_init_glfw() {
 
     bool glfw_status = glfwInit();
 
-    CLARITY_ASSERT(glfw_status == true, "Failed to init glfw.");
-
     if (!glfw_status) {
         return VNL_ERROR_GLFW_INIT_FAILED;
     }
@@ -46,29 +44,25 @@ VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
     VnlStatus status;
 
     status = vnl_init_glfw();
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vnl_init_glfw failed.");
     if (status != VNL_SUCCESS)
         return status;
 
     VnlEngine *engine = CLARITY_MALLOC(sizeof(VnlEngine));
-    CLARITY_ASSERT(engine != NULL, "Failed to allocate memory for VnlEngine.");
     if (!engine)
         return VNL_ERROR_OUT_OF_MEMORY;
 
     engine->config = config;
 
     status = vnl_window_create(config, &engine->window);
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vnl_window_create failed.");
     if (status != VNL_SUCCESS) {
-        free(engine);
+        CLARITY_FREE(engine);
         return status;
     }
 
     status = vulkan_init(config, engine->window, &engine->vkctx);
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vulkan_init failed.");
     if (status != VNL_SUCCESS) {
         vnl_window_destroy(engine->window);
-        free(engine);
+        CLARITY_FREE(engine);
         return status;
     }
 
@@ -93,7 +87,6 @@ void vnl_run(VnlEngine *engine) {
 }
 
 void vnl_shutdown(VnlEngine *engine) {
-    CLARITY_ASSERT(engine != NULL, "Engine pointer is NULL.");
     if (!engine)
         return;
 
