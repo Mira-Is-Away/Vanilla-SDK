@@ -101,7 +101,10 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
 static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
                                                    VkSurfaceKHR surface) {
     VkQueueFamilyIndices indices = {.has_graphics_family = false,
-                                    .graphics_family = 0};
+                                    .has_present_family = false,
+                                    .graphics_family = 0
+                                    .present_family = 0;
+                                    };
 
     // Get the amount of queue families available
     u32 queue_family_count = 0;
@@ -109,7 +112,7 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
 
     /*
     Allocate the necessary memory for the queue families found
-    and get the queue families proper
+    and fetch the queue families.
     */
     VkQueueFamilyProperties *queue_families =
         CLARITY_MALLOC(sizeof(VkQueueFamilyProperties) * queue_family_count);
