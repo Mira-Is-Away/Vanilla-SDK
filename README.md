@@ -1,6 +1,8 @@
 # Vanilla Engine
 
-A minimal Vulkan-based 2D game engine.
+A minimal Vulkan-based 2D game development SDK.
+> [!IMPORTANT]
+> In its current state, Vanilla is very much incomplete. It currently compiles into an executable binary instead of a library (.so, .dll) for early development speedup reasons. It will be converted into a proper library architecture once basic rendering is possible.
 
 ## Regarding Branches
 
