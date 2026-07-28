@@ -10,9 +10,9 @@
 #ifndef VANILLA_VANILLA_H_
 #define VANILLA_VANILLA_H_
 
-#include "misc/vnl_macros.h"
-#include "misc/vnl_status.h"
-#include "misc/vnl_types.h"
+#include "core/vnl_macros.h"
+#include "core/vnl_status.h"
+#include "core/vnl_types.h"
 
 #define GLFW_INCLUDE_VULKAN
 #define GLFW_INCLUDE_NONE

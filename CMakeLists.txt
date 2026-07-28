@@ -58,7 +58,7 @@ add_dependencies(${PROJECT_NAME} Format)
 target_sources(${PROJECT_NAME} PRIVATE
     main.c
     src/glfw/window.c
-    src/vanilla.c
+    src/core/vanilla.c
     src/vulkan/vkcontext.c
     src/vnl_ds/vnl_ilist.c
     src/vnl_ds/vnl_list.c

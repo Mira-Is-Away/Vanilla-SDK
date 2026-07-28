@@ -1,5 +1,5 @@
-#ifndef VANILLA_MISC_VNL_TYPES_H_
-#define VANILLA_MISC_VNL_TYPES_H_
+#ifndef VANILLA_CORE_VNL_TYPES_H_
+#define VANILLA_CORE_VNL_TYPES_H_
 
 #include <stdint.h>
 

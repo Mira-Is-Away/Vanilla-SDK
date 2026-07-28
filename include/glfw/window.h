@@ -13,7 +13,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include "misc/vnl_status.h"
+#include "core/vnl_status.h"
 
 typedef struct VnlConfig VnlConfig;
 typedef struct VnlWindow VnlWindow;

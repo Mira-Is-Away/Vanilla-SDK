@@ -10,8 +10,8 @@
 #ifndef VANILLA_VNL_DS_LIST_H_
 #define VANILLA_VNL_DS_LIST_H_
 
-#include <misc/vnl_status.h>
-#include <misc/vnl_types.h>
+#include <core/vnl_status.h>
+#include <core/vnl_types.h>
 
 typedef struct VnlListNode {
     void *data;
