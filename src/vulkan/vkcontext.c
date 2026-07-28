@@ -207,38 +207,36 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
 
     /**
      * The current approach only allows for a two queues, since
-     * queue_create_infos is a simple fixed-size array with 
+     * queue_create_infos is a simple fixed-size array with
      * information to create the graphics and present queues.
      */
 
     f32 queue_priority = 1.0f;
-    VkDeviceQueueCreateInfo queue_create_infos = CLARITY_MALLOC(2 * sizeof());
+    VkDeviceQueueCreateInfo queue_create_infos[2];
 
-    queue_create_infos[0] = {
+    queue_create_infos[0] = (VkDeviceQueueCreateInfo){
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
         .queueFamilyIndex = indices.graphics_family,
         .queueCount = 1,
-        .pQueuePriorities = &queue_priority
-    };
+        .pQueuePriorities = &queue_priority};
 
-    queue_create_infos[1] = {
+    queue_create_infos[1] = (VkDeviceQueueCreateInfo){
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
         .queueFamilyIndex = indices.present_family,
         .queueCount = 1,
-        .pQueuePriorities = &queue_priority
-    };
+        .pQueuePriorities = &queue_priority};
 
     // Validation layers are disabled.
     VkDeviceCreateInfo create_info = {.sType =
                                           VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                       .pNext = NULL,
                                       .flags = 0,
-                                      .queueCreateInfoCount = 1,
-                                      .pQueueCreateInfos = &queue_create_info,
+                                      .queueCreateInfoCount = 2,
+                                      .pQueueCreateInfos = queue_create_infos,
                                       .enabledLayerCount = 0,
                                       .ppEnabledLayerNames = NULL,
                                       .enabledExtensionCount = 0,
