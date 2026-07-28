@@ -88,8 +88,6 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
 
     VkResult result = vkCreateInstance(&vkctx->create_info, NULL, &instance);
 
-    CLARITY_ASSERT(result == VK_SUCCESS, "vkCreateInstance failed.");
-
     if (result != VK_SUCCESS) {
         CLARITY_LOG_WARN("Failed to create Vulkan context.");
         return VNL_ERROR_VULKAN_INSTANCE_CREATION_FAILED;
@@ -114,10 +112,7 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
     and get the queue families proper
     */
     VkQueueFamilyProperties *queue_families =
-        malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
-
-    CLARITY_ASSERT(queue_families != NULL,
-                   "Memory allocation failed for queue_families.");
+        CLARITY_MALLOC(sizeof(VkQueueFamilyProperties) * queue_family_count);
 
     if (!queue_families) {
         return indices;
@@ -143,7 +138,7 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
             break;
     }
 
-    free(queue_families);
+    CLARITY_FREE(queue_families);
     return indices;
 }
 
@@ -164,17 +159,13 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     u32 device_count = 0;
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, NULL);
 
-    CLARITY_ASSERT(device_count > 0, "No GPU with Vulkan support found.");
-
     if (device_count == 0) {
         CLARITY_LOG_WARN("Failed to find a GPU with Vulkan support.");
         return VNL_ERROR_PHYSICAL_DEVICE_NOT_FOUND;
     }
 
-    VkPhysicalDevice *devices = malloc(sizeof(VkPhysicalDevice) * device_count);
-
-    CLARITY_ASSERT(devices != NULL,
-                   "Memory allocation failed for physical devices list.");
+    VkPhysicalDevice *devices =
+        CLARITY_MALLOC(sizeof(VkPhysicalDevice) * device_count);
 
     if (!devices) {
         return VNL_ERROR_OUT_OF_MEMORY;
@@ -188,9 +179,7 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
         }
     }
 
-    free(devices);
-
-    CLARITY_ASSERT(physical_device != VK_NULL_HANDLE, "No suitable GPU found.");
+    CLARITY_FREE(devices);
 
     if (physical_device == VK_NULL_HANDLE) {
         CLARITY_LOG_WARN("Failed to find a GPU with Vulkan support.");
@@ -237,8 +226,6 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL,
                                      &vkctx->device);
 
-    CLARITY_ASSERT(result == VK_SUCCESS, "vkCreateDevice failed.");
-
     if (result != VK_SUCCESS) {
         CLARITY_LOG_WARN("Failed to create logical device.");
         return VNL_ERROR_LOGICAL_DEVICE_CREATION_FAILED;
@@ -260,8 +247,6 @@ static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
     VkResult result =
         glfwCreateWindowSurface(vkctx->instance, window, NULL, &vkctx->surface);
 
-    CLARITY_ASSERT(result == VK_SUCCESS, "glfwCreateWindowSurface failed.");
-
     if (result != VK_SUCCESS) {
         CLARITY_LOG_WARN("Failed to create Vulkan window surface.");
         return VNL_ERROR_SURFACE_CREATION_FAILED;
@@ -279,9 +264,10 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
 
     CLARITY_LOG_INFO("Initializing Vulkan Context.");
 
-    VkContext *vkctx = calloc(1, sizeof(VkContext));
-
-    CLARITY_ASSERT(vkctx != NULL, "Memory allocation failed for VkContext.");
+    VkContext *vkctx = CLARITY_MALLOC(sizeof(VkContext));
+    if (vkctx) {
+        memset(vkctx, 0, sizeof(VkContext));
+    }
 
     if (!vkctx)
         return VNL_ERROR_OUT_OF_MEMORY;
@@ -289,22 +275,18 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     VnlStatus status;
 
     status = vk_context_init(config, vkctx);
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_context_init failed.");
     if (status != VNL_SUCCESS)
         goto cleanup;
 
     status = vk_create_surface(vkctx, window);
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_create_surface failed.");
     if (status != VNL_SUCCESS)
         goto cleanup;
 
     status = vk_pick_physical_device(vkctx);
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_pick_physical_device failed.");
     if (status != VNL_SUCCESS)
         goto cleanup;
 
     status = vk_create_logical_device(vkctx);
-    CLARITY_ASSERT(status == VNL_SUCCESS, "vk_create_logical_device failed.");
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -332,7 +314,7 @@ void vulkan_shutdown(VkContext *vkctx) {
         if (vkctx->instance != VK_NULL_HANDLE) {
             vkDestroyInstance(vkctx->instance, NULL);
         }
-        free(vkctx);
+        CLARITY_FREE(vkctx);
 
         CLARITY_LOG_INFO("Vulkan Context shut down successfully.");
     }
