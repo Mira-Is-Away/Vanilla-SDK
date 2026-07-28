@@ -172,6 +172,7 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     if (!devices) {
         return VNL_ERROR_OUT_OF_MEMORY;
     }
+
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, devices);
 
     for (u32 i = 0; i < device_count; i++) {
@@ -204,15 +205,34 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     VkQueueFamilyIndices indices =
         vk_find_queue_families(vkctx->physical_device, vkctx->surface);
 
+    /**
+     * The current approach only allows for a two queues, since
+     * queue_create_infos is a simple fixed-size array with 
+     * information to create the graphics and present queues.
+     */
+
     f32 queue_priority = 1.0f;
-    VkDeviceQueueCreateInfo queue_create_info = {
+    VkDeviceQueueCreateInfo queue_create_infos = CLARITY_MALLOC(2 * sizeof());
+
+    queue_create_infos[0] = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
         .queueFamilyIndex = indices.graphics_family,
         .queueCount = 1,
-        .pQueuePriorities = &queue_priority};
+        .pQueuePriorities = &queue_priority
+    };
 
+    queue_create_infos[1] = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .queueFamilyIndex = indices.present_family,
+        .queueCount = 1,
+        .pQueuePriorities = &queue_priority
+    };
+
+    // Validation layers are disabled.
     VkDeviceCreateInfo create_info = {.sType =
                                           VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                       .pNext = NULL,
@@ -235,6 +255,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
 
     vkGetDeviceQueue(vkctx->device, indices.graphics_family, 0,
                      &vkctx->graphics_queue);
+    vkGetDeviceQueue(vkctx->device, indices.present_family, 0,
+                     &vkctx->present_queue);
 
     CLARITY_LOG_INFO("Vulkan Logical Device created successfully.");
     return VNL_SUCCESS;
@@ -297,7 +319,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     return VNL_SUCCESS;
 
 cleanup:
-    CLARITY_LOG_WARN("Vulkan Context initialization failed. Cleaning up...");
+    CLARITY_LOG_ERROR("Vulkan Context initialization failed. Cleaning up...");
     vulkan_shutdown(vkctx);
     return status;
 }

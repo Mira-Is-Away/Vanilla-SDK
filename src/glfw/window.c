@@ -26,7 +26,7 @@ VnlStatus vnl_window_create(const VnlConfig *config, GLFWwindow **out_window) {
         config->window.width, config->window.height, config->title, NULL, NULL);
 
     if (!window) {
-        CLARITY_LOG_WARN("Failed to create GLFW window.");
+        CLARITY_LOG_ERROR("Failed to create GLFW window.");
         return VNL_ERROR_WINDOW_CREATION_FAILED;
     }
 
@@ -38,7 +38,6 @@ VnlStatus vnl_window_create(const VnlConfig *config, GLFWwindow **out_window) {
 
 void vnl_window_destroy(GLFWwindow *window) {
     if (window) {
-        CLARITY_LOG_INFO("Destroying GLFW window.");
         glfwDestroyWindow(window);
     }
 }
