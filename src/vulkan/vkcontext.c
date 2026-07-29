@@ -11,11 +11,12 @@
 #define MIRA_CLARITY_DEBUG
 #endif
 #include <mira/clarity.h>
+#include <mira/darray.h>
 
-#include "core/vnl_macros.h"
-#include "core/vnl_status.h"
-#include "core/vnl_types.h"
-#include "vnl_ds/vnl_list.h"
+#include <core/vnl_macros.h>
+#include <core/vnl_status.h>
+#include <core/vnl_types.h>
+#include <vnl_ds/vnl_list.h>
 
 typedef struct VkQueueFamilyIndices {
     bool has_graphics_family;
@@ -26,8 +27,6 @@ typedef struct VkQueueFamilyIndices {
 
 typedef struct VkContext {
     VkInstance instance;
-    VkApplicationInfo app_info;
-    VkInstanceCreateInfo create_info;
     VkPhysicalDevice physical_device;
     VkDevice device;
     VkQueue graphics_queue;
@@ -35,9 +34,50 @@ typedef struct VkContext {
     VkSurfaceKHR surface;
 } VkContext;
 
-static void vk_context_init_app_info(const VnlConfig *config,
-                                     VkContext *vkctx) {
-    VkApplicationInfo app_info = {
+#ifdef MIRA_CLARITY_DEBUG
+static const char *validation_layers[] = {"VK_LAYER_KHRONOS_validation"};
+static const u32 validation_layer_count =
+    sizeof(validation_layers) / sizeof(validation_layers[0]);
+
+static bool vk_check_validation_layer_support(void) {
+    u32 layer_count = 0;
+    vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+
+    if (layer_count == 0) {
+        return false;
+    }
+
+    VkLayerProperties *available_layers =
+        CLARITY_MALLOC(sizeof(VkLayerProperties) * layer_count);
+    if (!available_layers) {
+        return false;
+    }
+
+    vkEnumerateInstanceLayerProperties(&layer_count, available_layers);
+
+    for (u32 i = 0; i < validation_layer_count; i++) {
+        bool layer_found = false;
+        for (u32 j = 0; j < layer_count; j++) {
+            if (strcmp(validation_layers[i], available_layers[j].layerName) ==
+                0) {
+                layer_found = true;
+                break;
+            }
+        }
+
+        if (!layer_found) {
+            CLARITY_FREE(available_layers);
+            return false;
+        }
+    }
+
+    CLARITY_FREE(available_layers);
+    return true;
+}
+#endif
+
+static VkApplicationInfo vk_context_init_app_info(const VnlConfig *config) {
+    return (VkApplicationInfo){
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = NULL,
         .pApplicationName = config->title,
@@ -49,18 +89,27 @@ static void vk_context_init_app_info(const VnlConfig *config,
             VK_MAKE_VERSION(VNL_ENGINE_VERSION_MAJOR, VNL_ENGINE_VERSION_MINOR,
                             VNL_ENGINE_VERSION_PATCH),
         .apiVersion = VK_API_VERSION_1_0};
-
-    vkctx->app_info = app_info;
 }
 
-static void vk_context_init_instance_create_info(VkContext *vkctx) {
+static VkInstanceCreateInfo
+vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
     VkInstanceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
-        .pApplicationInfo = &vkctx->app_info,
+        .pApplicationInfo = app_info,
         .enabledLayerCount = 0,
-        .ppEnabledLayerNames = 0};
+        .ppEnabledLayerNames = NULL};
+
+#ifdef MIRA_CLARITY_DEBUG
+    if (vk_check_validation_layer_support()) {
+        create_info.enabledLayerCount = validation_layer_count;
+        create_info.ppEnabledLayerNames = validation_layers;
+        CLARITY_LOG_INFO("Validation layers enabled.");
+    } else {
+        CLARITY_LOG_WARN("Validation layers requested, but not available.");
+    }
+#endif
 
     u32 glfw_extension_count = 0;
     const char **glfw_extensions;
@@ -69,7 +118,7 @@ static void vk_context_init_instance_create_info(VkContext *vkctx) {
     create_info.enabledExtensionCount = glfw_extension_count;
     create_info.ppEnabledExtensionNames = glfw_extensions;
 
-    vkctx->create_info = create_info;
+    return create_info;
 }
 
 static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
@@ -81,15 +130,15 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     u32 extension_count = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
 
+    VkApplicationInfo app_info = vk_context_init_app_info(config);
+    VkInstanceCreateInfo instance_info =
+        vk_context_init_instance_create_info(&app_info);
+
     VkInstance instance;
-
-    vk_context_init_app_info(config, vkctx);
-    vk_context_init_instance_create_info(vkctx);
-
-    VkResult result = vkCreateInstance(&vkctx->create_info, NULL, &instance);
+    VkResult result = vkCreateInstance(&instance_info, NULL, &instance);
 
     if (result != VK_SUCCESS) {
-        CLARITY_LOG_WARN("Failed to create Vulkan context.");
+        CLARITY_LOG_WARN("Failed to initialise Vulkan Instance.");
         return VNL_ERROR_VULKAN_INSTANCE_CREATION_FAILED;
     }
 
@@ -105,14 +154,9 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
                                     .graphics_family = 0,
                                     .present_family = 0};
 
-    // Get the amount of queue families available
     u32 queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, NULL);
 
-    /*
-    Allocate the necessary memory for the queue families found
-    and fetch the queue families.
-    */
     VkQueueFamilyProperties *queue_families =
         CLARITY_MALLOC(sizeof(VkQueueFamilyProperties) * queue_family_count);
 
@@ -144,10 +188,42 @@ static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
     return indices;
 }
 
+static bool vk_check_ext_suppport(VkPhysicalDevice device) {
+    u32 ext_count = 0;
+    vkEnumerateDeviceExtensionProperties(device, NULL, &ext_count, NULL);
+
+    if (ext_count == 0) {
+        return false;
+    }
+
+    VkExtensionProperties *available_ext =
+        CLARITY_MALLOC(sizeof(VkExtensionProperties) * ext_count);
+    if (!available_ext) {
+        return false;
+    }
+
+    vkEnumerateDeviceExtensionProperties(device, NULL, &ext_count,
+                                         available_ext);
+
+    bool found = false;
+    for (u32 i = 0; i < ext_count; i++) {
+        if (strcmp(available_ext[i].extensionName,
+                   VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
+            found = true;
+            break;
+        }
+    }
+
+    CLARITY_FREE(available_ext);
+    return found;
+}
+
 static bool vk_is_device_suitable(VkPhysicalDevice device,
                                   VkSurfaceKHR surface) {
     VkQueueFamilyIndices indices = vk_find_queue_families(device, surface);
-    return indices.has_graphics_family && indices.has_present_family;
+    bool ext_supported = vk_check_ext_suppport(device);
+    return indices.has_graphics_family && indices.has_present_family &&
+           ext_supported;
 }
 
 static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
@@ -206,15 +282,16 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         vk_find_queue_families(vkctx->physical_device, vkctx->surface);
 
     /**
-     * The current approach only allows for a two queues, since
+     * The current approach only allows for two queues, since
      * queue_create_infos is a simple fixed-size array with
      * information to create the graphics and present queues.
      */
 
     f32 queue_priority = 1.0f;
     VkDeviceQueueCreateInfo queue_create_infos[2];
+    u32 queue_create_info_count = 0;
 
-    queue_create_infos[0] = (VkDeviceQueueCreateInfo){
+    queue_create_infos[queue_create_info_count++] = (VkDeviceQueueCreateInfo){
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
@@ -222,26 +299,37 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .queueCount = 1,
         .pQueuePriorities = &queue_priority};
 
-    queue_create_infos[1] = (VkDeviceQueueCreateInfo){
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+    if (indices.graphics_family != indices.present_family) {
+        queue_create_infos[queue_create_info_count++] =
+            (VkDeviceQueueCreateInfo){
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .pNext = NULL,
+                .flags = 0,
+                .queueFamilyIndex = indices.present_family,
+                .queueCount = 1,
+                .pQueuePriorities = &queue_priority};
+    }
+
+    const char *device_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    VkDeviceCreateInfo create_info = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
-        .queueFamilyIndex = indices.present_family,
-        .queueCount = 1,
-        .pQueuePriorities = &queue_priority};
+        .queueCreateInfoCount = queue_create_info_count,
+        .pQueueCreateInfos = queue_create_infos,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = NULL,
+        .enabledExtensionCount = 1,
+        .ppEnabledExtensionNames = device_extensions,
+        .pEnabledFeatures = &device_features};
 
-    // Validation layers are disabled.
-    VkDeviceCreateInfo create_info = {.sType =
-                                          VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-                                      .pNext = NULL,
-                                      .flags = 0,
-                                      .queueCreateInfoCount = 2,
-                                      .pQueueCreateInfos = queue_create_infos,
-                                      .enabledLayerCount = 0,
-                                      .ppEnabledLayerNames = NULL,
-                                      .enabledExtensionCount = 0,
-                                      .ppEnabledExtensionNames = NULL,
-                                      .pEnabledFeatures = &device_features};
+#ifdef MIRA_CLARITY_DEBUG
+    if (vk_check_validation_layer_support()) {
+        create_info.enabledLayerCount = validation_layer_count;
+        create_info.ppEnabledLayerNames = validation_layers;
+    }
+#endif
 
     VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL,
                                      &vkctx->device);

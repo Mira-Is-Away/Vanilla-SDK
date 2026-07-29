@@ -11,9 +11,10 @@
 #endif
 #define MIRA_CLARITY_IMPL
 #include <mira/clarity.h>
-
+#define MIRA_DARRAY_IMPL
 #include <core/vnl_types.h>
 #include <glfw/window.h>
+#include <mira/darray.h>
 #include <vulkan/vkcontext.h>
 
 struct VnlEngine {
