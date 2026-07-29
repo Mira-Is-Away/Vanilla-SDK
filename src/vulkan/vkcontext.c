@@ -17,13 +17,8 @@
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
 #include <vnl_ds/vnl_list.h>
-
-typedef struct VkQueueFamilyIndices {
-    bool has_graphics_family;
-    bool has_present_family;
-    u32 graphics_family;
-    u32 present_family;
-} VkQueueFamilyIndices;
+#include <vulkan/vkqueue.h>
+#include <vulkan/vulkan.h>
 
 typedef struct VkContext {
     VkInstance instance;
@@ -91,6 +86,24 @@ static VkApplicationInfo vk_context_init_app_info(const VnlConfig *config) {
         .apiVersion = VK_API_VERSION_1_0};
 }
 
+static DARRAY(const char *) vk_get_required_ext() {
+    u32 ext_count = 0;
+    const char **req_glfw_ext;
+    req_glfw_ext = glfwGetRequiredInstanceExtensions(&ext_count);
+
+    DARRAY(const char *) req_ext = NULL;
+
+    for (u32 i = 0; i < ext_count; i++) {
+        DARRAY_PUSH(req_ext, req_glfw_ext[i]);
+    }
+
+#ifdef MIRA_CLARITY_DEBUG
+    DARRAY_PUSH(req_ext, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+    return req_ext;
+}
+
 static VkInstanceCreateInfo
 vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
     VkInstanceCreateInfo create_info = {
@@ -111,12 +124,10 @@ vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
     }
 #endif
 
-    u32 glfw_extension_count = 0;
-    const char **glfw_extensions;
-    glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
+    DARRAY(const char *) req_ext = vk_get_required_ext();
 
-    create_info.enabledExtensionCount = glfw_extension_count;
-    create_info.ppEnabledExtensionNames = glfw_extensions;
+    create_info.enabledExtensionCount = (u32)DARRAY_SIZE(req_ext);
+    create_info.ppEnabledExtensionNames = req_ext;
 
     return create_info;
 }
@@ -145,47 +156,6 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     vkctx->instance = instance;
     CLARITY_LOG_INFO("Vulkan Instance created successfully.");
     return VNL_SUCCESS;
-}
-
-static VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
-                                                   VkSurfaceKHR surface) {
-    VkQueueFamilyIndices indices = {.has_graphics_family = false,
-                                    .has_present_family = false,
-                                    .graphics_family = 0,
-                                    .present_family = 0};
-
-    u32 queue_family_count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, NULL);
-
-    VkQueueFamilyProperties *queue_families =
-        CLARITY_MALLOC(sizeof(VkQueueFamilyProperties) * queue_family_count);
-
-    if (!queue_families) {
-        return indices;
-    }
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count,
-                                             queue_families);
-
-    for (u32 i = 0; i < queue_family_count; i++) {
-        if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphics_family = i;
-            indices.has_graphics_family = true;
-        }
-
-        VkBool32 present_support = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface,
-                                             &present_support);
-        if (present_support) {
-            indices.present_family = i;
-            indices.has_present_family = true;
-        }
-
-        if (indices.has_graphics_family && indices.has_present_family)
-            break;
-    }
-
-    CLARITY_FREE(queue_families);
-    return indices;
 }
 
 static bool vk_check_ext_suppport(VkPhysicalDevice device) {
@@ -222,8 +192,17 @@ static bool vk_is_device_suitable(VkPhysicalDevice device,
                                   VkSurfaceKHR surface) {
     VkQueueFamilyIndices indices = vk_find_queue_families(device, surface);
     bool ext_supported = vk_check_ext_suppport(device);
+    /*
+    bool adeq_swapchain = false;
+
+    if (ext_supported) {
+        VkSwapChainInfo sc_info = vk_swapchain_query_support(device, surface);
+        adeq_swapchain = DARRAY_SIZE(sc_info.formats) != 0 &&
+                         DARRAY_SIZE(sc_info.present_modes) != 0;
+    } */
+
     return indices.has_graphics_family && indices.has_present_family &&
-           ext_supported;
+           ext_supported /*&& adeq_swapchain*/;
 }
 
 static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
@@ -312,7 +291,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         DARRAY_PUSH(queue_create_infos, queue_create_info);
     }
 
-    const char *device_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    DARRAY(const char *) device_ext = NULL;
+    DARRAY_PUSH(device_ext, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     VkDeviceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -322,8 +302,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .pQueueCreateInfos = queue_create_infos,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = NULL,
-        .enabledExtensionCount = 1,
-        .ppEnabledExtensionNames = device_extensions,
+        .enabledExtensionCount = DARRAY_SIZE(device_ext),
+        .ppEnabledExtensionNames = device_ext,
         .pEnabledFeatures = &device_features};
 
 #ifdef MIRA_CLARITY_DEBUG
