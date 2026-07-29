@@ -5,8 +5,6 @@
 
 #include "mira/clarity.h"
 
-// TODO: Add Vulkan validation layers
-
 int main() {
     /*
     User creates and owns the config.
