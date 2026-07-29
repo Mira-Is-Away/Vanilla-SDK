@@ -288,10 +288,9 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
      */
 
     f32 queue_priority = 1.0f;
-    VkDeviceQueueCreateInfo queue_create_infos[2];
-    u32 queue_create_info_count = 0;
+    DARRAY(VkDeviceQueueCreateInfo) queue_create_infos = NULL;
 
-    queue_create_infos[queue_create_info_count++] = (VkDeviceQueueCreateInfo){
+    VkDeviceQueueCreateInfo queue_create_info = (VkDeviceQueueCreateInfo){
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
@@ -299,15 +298,18 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .queueCount = 1,
         .pQueuePriorities = &queue_priority};
 
+    DARRAY_PUSH(queue_create_infos, queue_create_info);
+
     if (indices.graphics_family != indices.present_family) {
-        queue_create_infos[queue_create_info_count++] =
-            (VkDeviceQueueCreateInfo){
-                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .pNext = NULL,
-                .flags = 0,
-                .queueFamilyIndex = indices.present_family,
-                .queueCount = 1,
-                .pQueuePriorities = &queue_priority};
+        queue_create_info = (VkDeviceQueueCreateInfo){
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .pNext = NULL,
+            .flags = 0,
+            .queueFamilyIndex = indices.present_family,
+            .queueCount = 1,
+            .pQueuePriorities = &queue_priority};
+
+        DARRAY_PUSH(queue_create_infos, queue_create_info);
     }
 
     const char *device_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -316,7 +318,7 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
-        .queueCreateInfoCount = queue_create_info_count,
+        .queueCreateInfoCount = DARRAY_SIZE(queue_create_infos),
         .pQueueCreateInfos = queue_create_infos,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = NULL,
