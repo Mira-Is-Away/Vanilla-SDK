@@ -27,6 +27,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(mira_clarity)
 
+FetchContent_Declare(
+    mira_darray
+    GIT_REPOSITORY https://github.com/Mira-Is-Away/darray.git
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(mira_darray)
+
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -71,6 +78,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     glfw
     mira_clarity
+    mira_darray
     Vulkan::Vulkan
     Threads::Threads
     ${CMAKE_DL_LIBS}
