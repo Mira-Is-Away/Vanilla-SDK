@@ -18,6 +18,7 @@
 #include <core/vnl_types.h>
 #include <vnl_ds/vnl_list.h>
 #include <vulkan/vkqueue.h>
+#include <vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>
 
 typedef struct VkContext {
@@ -27,6 +28,7 @@ typedef struct VkContext {
     VkQueue graphics_queue;
     VkQueue present_queue;
     VkSurfaceKHR surface;
+    VkSwapchainKHR swapchain;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -192,17 +194,16 @@ static bool vk_is_device_suitable(VkPhysicalDevice device,
                                   VkSurfaceKHR surface) {
     VkQueueFamilyIndices indices = vk_find_queue_families(device, surface);
     bool ext_supported = vk_check_ext_suppport(device);
-    /*
     bool adeq_swapchain = false;
 
     if (ext_supported) {
         VkSwapChainInfo sc_info = vk_swapchain_query_support(device, surface);
         adeq_swapchain = DARRAY_SIZE(sc_info.formats) != 0 &&
                          DARRAY_SIZE(sc_info.present_modes) != 0;
-    } */
+    }
 
     return indices.has_graphics_family && indices.has_present_family &&
-           ext_supported /*&& adeq_swapchain*/;
+           ext_supported && adeq_swapchain;
 }
 
 static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
@@ -382,6 +383,11 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
+    status = vk_swapchain_create(vkctx->physical_device, vkctx->device,
+                                 vkctx->surface, window, &vkctx->swapchain);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
+
     *out_ctx = vkctx;
     CLARITY_LOG_INFO("Vulkan Context initialized successfully.");
     return VNL_SUCCESS;
@@ -396,6 +402,9 @@ void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
         CLARITY_LOG_INFO("Shutting down Vulkan Context.");
 
+        if (vkctx->swapchain != VK_NULL_HANDLE) {
+            vkDestroySwapchainKHR(vkctx->device, vkctx->swapchain, NULL);
+        }
         if (vkctx->device != VK_NULL_HANDLE) {
             vkDestroyDevice(vkctx->device, NULL);
         }
