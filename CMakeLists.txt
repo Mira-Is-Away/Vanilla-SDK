@@ -69,6 +69,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/vulkan/vkcontext.c
     src/vulkan/vkqueue.c
     src/vulkan/vkswapchain.c
+    src/vulkan/vkimageview.c
     src/vnl_ds/vnl_ilist.c
     src/vnl_ds/vnl_list.c
 )

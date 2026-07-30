@@ -17,6 +17,7 @@
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
 #include <vnl_ds/vnl_list.h>
+#include <vulkan/vkimageview.h>
 #include <vulkan/vkqueue.h>
 #include <vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>
@@ -29,6 +30,7 @@ typedef struct VkContext {
     VkQueue present_queue;
     VkSurfaceKHR surface;
     VkSwapchainInstance swapchain;
+    DARRAY(VkImageView) views;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -388,6 +390,12 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
+    vkctx->views = VK_NULL_HANDLE;
+    status = vk_image_view_create(vkctx->device, vkctx->swapchain.images,
+                                  vkctx->swapchain.format, &vkctx->views);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
+
     *out_ctx = vkctx;
     CLARITY_LOG_INFO("Vulkan Context initialized successfully.");
     return VNL_SUCCESS;
@@ -402,6 +410,11 @@ void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
         CLARITY_LOG_INFO("Shutting down Vulkan Context.");
 
+        if (vkctx->views != VK_NULL_HANDLE) {
+            DARRAY_FOREACH(VkImageView, view, vkctx->views) {
+                vkDestroyImageView(vkctx->device, *view, NULL);
+            }
+        }
         if (vkctx->swapchain.swapchain != VK_NULL_HANDLE) {
             // There should be a dedicated function to destroy the
             // VkSwapchainInstance

@@ -201,7 +201,7 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     }
 
     out_sc->swapchain = sc;
-    out_sc->format = surface_format;
+    out_sc->format = surface_format.format;
     out_sc->extent = extent;
     out_sc->images = NULL;
 

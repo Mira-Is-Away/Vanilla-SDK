@@ -15,7 +15,7 @@ typedef struct {
 
 typedef struct {
     VkSwapchainKHR swapchain;
-    VkSurfaceFormatKHR format;
+    VkFormat format;
     VkExtent2D extent;
     DARRAY(VkImage) images;
 } VkSwapchainInstance;
