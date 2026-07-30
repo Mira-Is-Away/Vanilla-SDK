@@ -1,4 +1,4 @@
-# Vanilla Engine
+# Vanilla SDK
 
 A minimal Vulkan-based 2D game development SDK.
 > [!IMPORTANT]
@@ -25,6 +25,7 @@ sudo dnf install \
     gcc \
     cmake \
     ninja-build \
+    glslc \
     clang-tools-extra \
     vulkan-loader-devel \
     vulkan-validation-layers \
@@ -46,6 +47,7 @@ sudo apt-get install \
     build-essential \
     cmake \
     ninja-build \
+    glslc \
     clang-format \
     libvulkan-dev \
     libwayland-dev \
@@ -71,6 +73,6 @@ Use the provided build script (this will compile in Debug mode by default):
 Or manually:
 
 ```bash
-cmake --preset default-linux # or default-windows if compiling for Windows
-cmake --build bin --config Debug
+cmake --preset default
+cmake --build build --config Debug
 ```

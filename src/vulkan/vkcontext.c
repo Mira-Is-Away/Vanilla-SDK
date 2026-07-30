@@ -18,6 +18,7 @@
 #include <core/vnl_types.h>
 #include <vnl_ds/vnl_list.h>
 #include <vulkan/vkimageview.h>
+#include <vulkan/vkpipeline.h>
 #include <vulkan/vkqueue.h>
 #include <vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>
@@ -393,6 +394,10 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     vkctx->views = VK_NULL_HANDLE;
     status = vk_image_view_create(vkctx->device, vkctx->swapchain.images,
                                   vkctx->swapchain.format, &vkctx->views);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
+
+    status = vk_pipeline_create();
     if (status != VNL_SUCCESS)
         goto cleanup;
 

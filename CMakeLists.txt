@@ -37,7 +37,6 @@ FetchContent_MakeAvailable(mira_darray)
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
-
 # Enables automatic formatting if clang-format is installed.
 find_program(CLANG_FORMAT_EXE NAMES clang-format)
 
@@ -58,9 +57,44 @@ else()
     add_custom_target(Format)
 endif()
 
+# glslc compiler for SPIR-V shader compilation
+find_program(GLSLC_EXE glslc
+    HINTS $ENV{VULKAN_SDK}/bin $ENV{VULKAN_SDK}/RunTimeInstaller
+    DOC "Path to glslc shader compiler"
+)
+
+if(NOT GLSLC_EXE)
+    message(FATAL_ERROR "glslc not found! Please, make sure glslc is installed and included inside your PATH.")
+endif()
+
+set(SHADER_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/vertex.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fragment.frag
+)
+
+set(SPIRV_BIN_FILES "")
+
+foreach(SHADER_SRC ${SHADER_SOURCES})
+    get_filename_component(FILE_NAME ${SHADER_SRC} NAME)
+    set(SPIRV_OUT "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv")
+
+    add_custom_command(
+        OUTPUT ${SPIRV_OUT}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders"
+        COMMAND ${GLSLC_EXE} ${SHADER_SRC} -o ${SPIRV_OUT}
+        DEPENDS ${SHADER_SRC}
+        COMMENT "Compiling shader ${FILE_NAME} -> ${FILE_NAME}.spv"
+        VERBATIM
+    )
+
+    list(APPEND SPIRV_BIN_FILES ${SPIRV_OUT})
+endforeach()
+
+add_custom_target(CompileShaders DEPENDS ${SPIRV_BIN_FILES})
+
 add_executable(${PROJECT_NAME})
 
-add_dependencies(${PROJECT_NAME} Format)
+add_dependencies(${PROJECT_NAME} Format CompileShaders)
 
 target_sources(${PROJECT_NAME} PRIVATE
     main.c
@@ -70,6 +104,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/vulkan/vkqueue.c
     src/vulkan/vkswapchain.c
     src/vulkan/vkimageview.c
+    src/vulkan/vkshadermodules.c
+    src/vulkan/vkpipeline.c
     src/vnl_ds/vnl_ilist.c
     src/vnl_ds/vnl_list.c
 )
@@ -87,7 +123,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${CMAKE_DL_LIBS}
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+    SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders/"
+)
+
 if(MSVC)
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:/W4 /Zi /Od /utf-8 /permissive->
