@@ -28,7 +28,7 @@ typedef struct VkContext {
     VkQueue graphics_queue;
     VkQueue present_queue;
     VkSurfaceKHR surface;
-    VkSwapchainKHR swapchain;
+    VkSwapchainInstance swapchain;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -197,7 +197,7 @@ static bool vk_is_device_suitable(VkPhysicalDevice device,
     bool adeq_swapchain = false;
 
     if (ext_supported) {
-        VkSwapChainInfo sc_info = vk_swapchain_query_support(device, surface);
+        VkSwapchainInfo sc_info = vk_swapchain_query_support(device, surface);
         adeq_swapchain = DARRAY_SIZE(sc_info.formats) != 0 &&
                          DARRAY_SIZE(sc_info.present_modes) != 0;
     }
@@ -402,8 +402,11 @@ void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
         CLARITY_LOG_INFO("Shutting down Vulkan Context.");
 
-        if (vkctx->swapchain != VK_NULL_HANDLE) {
-            vkDestroySwapchainKHR(vkctx->device, vkctx->swapchain, NULL);
+        if (vkctx->swapchain.swapchain != VK_NULL_HANDLE) {
+            // There should be a dedicated function to destroy the
+            // VkSwapchainInstance
+            vkDestroySwapchainKHR(vkctx->device, vkctx->swapchain.swapchain,
+                                  NULL);
         }
         if (vkctx->device != VK_NULL_HANDLE) {
             vkDestroyDevice(vkctx->device, NULL);

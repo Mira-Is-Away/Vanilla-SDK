@@ -11,9 +11,16 @@ typedef struct {
     VkSurfaceCapabilitiesKHR cap;
     DARRAY(VkSurfaceFormatKHR) formats;
     DARRAY(VkPresentModeKHR) present_modes;
-} VkSwapChainInfo;
+} VkSwapchainInfo;
 
-VkSwapChainInfo vk_swapchain_query_support(VkPhysicalDevice device,
+typedef struct {
+    VkSwapchainKHR swapchain;
+    VkSurfaceFormatKHR format;
+    VkExtent2D extent;
+    DARRAY(VkImage) images;
+} VkSwapchainInstance;
+
+VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
                                            VkSurfaceKHR surface);
 
 VkSurfaceFormatKHR vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR)
@@ -27,6 +34,6 @@ VkExtent2D vk_swapchain_extent(GLFWwindow *window,
 
 VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                               VkSurfaceKHR surface, GLFWwindow *window,
-                              VkSwapchainKHR *out_sc);
+                              VkSwapchainInstance *out_sc);
 
 #endif

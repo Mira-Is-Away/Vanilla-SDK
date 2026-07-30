@@ -5,9 +5,9 @@
 #include <core/vnl_types.h>
 #include <mira/clarity.h>
 
-VkSwapChainInfo vk_swapchain_query_support(VkPhysicalDevice device,
+VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
                                            VkSurfaceKHR surface) {
-    VkSwapChainInfo info = {0};
+    VkSwapchainInfo info = {0};
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &info.cap);
 
@@ -140,12 +140,12 @@ VkExtent2D vk_swapchain_extent(GLFWwindow *window,
 
 VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                               VkSurfaceKHR surface, GLFWwindow *window,
-                              VkSwapchainKHR *out_sc) {
+                              VkSwapchainInstance *out_sc) {
 
     CLARITY_LOG_INFO("Creating Vulkan Swapchain.");
 
     // Fetching information about the swapchain capabilities
-    VkSwapChainInfo sc_info =
+    VkSwapchainInfo sc_info =
         vk_swapchain_query_support(physical_device, surface);
     VkSurfaceFormatKHR surface_format =
         vk_swapchain_choose_format(sc_info.formats);
@@ -200,6 +200,21 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
         return VNL_ERROR_SWAPCHAIN_CREATION_FAILED;
     }
 
-    *out_sc = sc;
+    out_sc->swapchain = sc;
+    out_sc->format = surface_format;
+    out_sc->extent = extent;
+    out_sc->images = NULL;
+
+    // Retrieving handles for the swapchain images
+    vkGetSwapchainImagesKHR(device, sc, &image_count, NULL);
+    VkImage *sc_images = CLARITY_MALLOC(sizeof(VkImage) * image_count);
+    if (sc_images) {
+        vkGetSwapchainImagesKHR(device, sc, &image_count, sc_images);
+        for (u32 i = 0; i < image_count; i++) {
+            DARRAY_PUSH(out_sc->images, sc_images[i]);
+        }
+        CLARITY_FREE(sc_images);
+    }
+
     return VNL_SUCCESS;
 }
