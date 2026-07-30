@@ -12,7 +12,7 @@ The `dev` branch is used in active development for untested code and should neve
 
 ## Prerequisites
 
-To compile this project, you need a C17-compatible compiler, the Ninja build system and CMake 3.22+.
+To compile this project, you need a C17-compatible compiler, the Ninja build system and CMake 3.22+, as well as an active internet connection during compilation for dependency fetching.
 
 It is highly recommended to install `clang-format`, since it is used by this project's CMake configuration to automatically format the codebase before compilation. Note that, while it is listed among the project's dependencies, it is, in fact, optional, and the project will still compile if the package isn't found (although automatic formatting will be turned off.
 
