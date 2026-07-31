@@ -397,7 +397,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_pipeline_create();
+    status = vk_pipeline_create(vkctx->device);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
