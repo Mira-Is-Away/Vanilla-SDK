@@ -32,6 +32,7 @@ typedef struct VkContext {
     VkSurfaceKHR surface;
     VkSwapchainInstance swapchain;
     DARRAY(VkImageView) views;
+    VkPipelineLayout pipeline_layout;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -397,7 +398,8 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_pipeline_create(vkctx->device);
+    status = vk_pipeline_create(vkctx->device, vkctx->swapchain,
+                                &vkctx->pipeline_layout);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -415,6 +417,10 @@ void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
         CLARITY_LOG_INFO("Shutting down Vulkan Context.");
 
+        if (vkctx->pipeline_layout != VK_NULL_HANDLE) {
+            vkDestroyPipelineLayout(vkctx->device, vkctx->pipeline_layout,
+                                    NULL);
+        }
         if (vkctx->views != VK_NULL_HANDLE) {
             DARRAY_FOREACH(VkImageView, view, vkctx->views) {
                 vkDestroyImageView(vkctx->device, *view, NULL);
