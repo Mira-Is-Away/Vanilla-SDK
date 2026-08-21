@@ -20,6 +20,7 @@
 #include <vulkan/vkimageview.h>
 #include <vulkan/vkpipeline.h>
 #include <vulkan/vkqueue.h>
+#include <vulkan/vkrenderpass.h>
 #include <vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>
 
@@ -33,6 +34,7 @@ typedef struct VkContext {
     VkSwapchainInstance swapchain;
     DARRAY(VkImageView) views;
     VkPipelineLayout pipeline_layout;
+    VkRenderPass render_pass;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -369,6 +371,35 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (!vkctx)
         return VNL_ERROR_OUT_OF_MEMORY;
 
+    /*
+    typedef struct VkContext {
+        VkInstance instance;
+        VkPhysicalDevice physical_device;
+        VkDevice device;
+        VkQueue graphics_queue;
+        VkQueue present_queue;
+        VkSurfaceKHR surface;
+        VkSwapchainInstance swapchain;
+        DARRAY(VkImageView) views;
+        VkPipelineLayout pipeline_layout;
+        VkRenderPass render_pass;
+    } VkContext;
+    */
+
+    vkctx->instance = VK_NULL_HANDLE;
+    vkctx->physical_device = VK_NULL_HANDLE;
+    vkctx->device = VK_NULL_HANDLE;
+    vkctx->graphics_queue = VK_NULL_HANDLE;
+    vkctx->present_queue = VK_NULL_HANDLE;
+    vkctx->surface = VK_NULL_HANDLE;
+    vkctx->swapchain.swapchain = VK_NULL_HANDLE;
+    vkctx->swapchain.format = VK_FORMAT_UNDEFINED;
+    vkctx->swapchain.extent = (VkExtent2D){0, 0};
+    vkctx->swapchain.images = NULL;
+    vkctx->views = NULL;
+    vkctx->render_pass = VK_NULL_HANDLE;
+    vkctx->pipeline_layout = VK_NULL_HANDLE;
+
     VnlStatus status;
 
     status = vk_context_init(config, vkctx);
@@ -392,9 +423,13 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    vkctx->views = VK_NULL_HANDLE;
     status = vk_image_view_create(vkctx->device, vkctx->swapchain.images,
                                   vkctx->swapchain.format, &vkctx->views);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
+
+    status = vk_render_pass_create(vkctx->device, vkctx->swapchain,
+                                   &vkctx->render_pass);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -420,27 +455,40 @@ void vulkan_shutdown(VkContext *vkctx) {
         if (vkctx->pipeline_layout != VK_NULL_HANDLE) {
             vkDestroyPipelineLayout(vkctx->device, vkctx->pipeline_layout,
                                     NULL);
+            vkctx->pipeline_layout = VK_NULL_HANDLE;
         }
-        if (vkctx->views != VK_NULL_HANDLE) {
+        if (vkctx->render_pass != VK_NULL_HANDLE) {
+            vkDestroyRenderPass(vkctx->device, vkctx->render_pass, NULL);
+            vkctx->render_pass = VK_NULL_HANDLE;
+        }
+        if (vkctx->views != NULL) {
             DARRAY_FOREACH(VkImageView, view, vkctx->views) {
-                vkDestroyImageView(vkctx->device, *view, NULL);
+                if (*view != VK_NULL_HANDLE) {
+                    vkDestroyImageView(vkctx->device, *view, NULL);
+                }
             }
+            DARRAY_FREE(vkctx->views);
+        }
+        if (vkctx->swapchain.images != NULL) {
+            DARRAY_FREE(vkctx->swapchain.images);
         }
         if (vkctx->swapchain.swapchain != VK_NULL_HANDLE) {
-            // There should be a dedicated function to destroy the
-            // VkSwapchainInstance
             vkDestroySwapchainKHR(vkctx->device, vkctx->swapchain.swapchain,
                                   NULL);
+            vkctx->swapchain.swapchain = VK_NULL_HANDLE;
         }
         if (vkctx->device != VK_NULL_HANDLE) {
             vkDestroyDevice(vkctx->device, NULL);
+            vkctx->device = VK_NULL_HANDLE;
         }
         if (vkctx->instance != VK_NULL_HANDLE &&
             vkctx->surface != VK_NULL_HANDLE) {
             vkDestroySurfaceKHR(vkctx->instance, vkctx->surface, NULL);
+            vkctx->surface = VK_NULL_HANDLE;
         }
         if (vkctx->instance != VK_NULL_HANDLE) {
             vkDestroyInstance(vkctx->instance, NULL);
+            vkctx->instance = VK_NULL_HANDLE;
         }
         CLARITY_FREE(vkctx);
 

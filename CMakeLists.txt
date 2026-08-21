@@ -104,6 +104,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/vulkan/vkqueue.c
     src/vulkan/vkswapchain.c
     src/vulkan/vkimageview.c
+    src/vulkan/vkrenderpass.c
     src/vulkan/vkshadermodules.c
     src/vulkan/vkpipeline.c
     src/vnl_ds/vnl_ilist.c
