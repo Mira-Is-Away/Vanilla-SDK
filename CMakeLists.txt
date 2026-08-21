@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(vanilla-sdk LANGUAGES C)
 
-set(VANILLA_SDK_VERSION "1.0.0-beta.5")
+set(VANILLA_SDK_VERSION "1.0.0-beta.6")
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED YES)
