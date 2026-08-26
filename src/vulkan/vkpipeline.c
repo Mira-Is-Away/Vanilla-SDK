@@ -10,10 +10,22 @@
 #include <vulkan/vkshadermodules.h>
 #include <vulkan/vkswapchain.h>
 
+static VkPipelineDynamicStateCreateInfo _create_dynamic_pipeline_state() {
+    DARRAY(VkDynamicState) dynamic_state_list = NULL;
+    DARRAY_PUSH(dynamic_state_list, VK_DYNAMIC_STATE_VIEWPORT);
+    DARRAY_PUSH(dynamic_state_list, VK_DYNAMIC_STATE_SCISSOR);
+
+    return (VkPipelineDynamicStateCreateInfo){
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = DARRAY_SIZE(dynamic_state_list),
+        .pDynamicStates = dynamic_state_list};
+}
+
 VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
-                             VkPipelineLayout *out_layout) {
+                             VkRenderPass render_pass,
+                             VkPipelineInstance *out_pipeline) {
     CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
-    CLARITY_ASSERT(out_layout != NULL,
+    CLARITY_ASSERT(out_pipeline != NULL,
                    "Output pipeline layout pointer cannot be NULL.");
 
     size_t vert_s, frag_s;
@@ -52,22 +64,20 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
         .pNext = NULL,
         .flags = 0,
         .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = vert_m,
+        .module = frag_m,
         .pName = "main",
         .pSpecializationInfo = NULL};
 
-    DARRAY(VkPipelineShaderStageCreateInfo) create_infos = NULL;
-    DARRAY_PUSH(create_infos, v_create_info);
-    DARRAY_PUSH(create_infos, f_create_info);
+    DARRAY(VkPipelineShaderStageCreateInfo) shader_stages = NULL;
+    DARRAY_PUSH(shader_stages, v_create_info);
+    DARRAY_PUSH(shader_stages, f_create_info);
 
     /**
      * The entire next session is full of currently unused structs, but that
      * will be used later. The next section is commented out to avoid "unused
      * variable" warnings.
      */
-
-    /*
-    VkPipelineVertexInputStateCreateInfo vis_info = {
+    VkPipelineVertexInputStateCreateInfo vertex_input_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
@@ -104,6 +114,7 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
+            .lineWidth = 1.0f,
             .cullMode = VK_CULL_MODE_BACK_BIT,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
@@ -111,7 +122,7 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
             .depthBiasClamp = 0.0f,
             .depthBiasSlopeFactor = 0.0f};
 
-    VkPipelineMultisampleStateCreateInfo multi_info =
+    VkPipelineMultisampleStateCreateInfo multisample_info =
         (VkPipelineMultisampleStateCreateInfo){
             .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
             .sampleShadingEnable = VK_FALSE,
@@ -121,9 +132,10 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
             .alphaToCoverageEnable = VK_FALSE,
             .alphaToOneEnable = VK_FALSE};
 
-
-    * Alpha blending is currently disabled, but I'll leave the optional fields
-    * of the colour blending struct commented out for easier refactor later.
+    /**
+     * Alpha blending is currently disabled, but I'll leave the optional fields
+     * of the colour blending struct commented out for easier refactor later.
+     */
     VkPipelineColorBlendAttachmentState color_blend =
         (VkPipelineColorBlendAttachmentState){
             .colorWriteMask =
@@ -148,7 +160,9 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
         .blendConstants[1] = 0.0f,
         .blendConstants[2] = 0.0f,
         .blendConstants[3] = 0.0f};
-    */
+
+    VkPipelineDynamicStateCreateInfo dynamic_state =
+        _create_dynamic_pipeline_state();
 
     VkPipelineLayout pipeline_layout;
     VkPipelineLayoutCreateInfo layout_info = (VkPipelineLayoutCreateInfo){
@@ -163,7 +177,35 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
         return VNL_ERROR_PIPELINE_CREATION_FAILED;
     }
 
-    *out_layout = pipeline_layout;
+    out_pipeline->layout = pipeline_layout;
+
+    VkGraphicsPipelineCreateInfo pipeline_info = (VkGraphicsPipelineCreateInfo){
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = 2,
+        .pStages = shader_stages,
+        .pVertexInputState = &vertex_input_info,
+        .pInputAssemblyState = &in_asm_info,
+        .pViewportState = &viewport_state,
+        .pRasterizationState = &rast_info,
+        .pMultisampleState = &multisample_info,
+        .pDepthStencilState = NULL,
+        .pColorBlendState = &colour_blend_info,
+        .pDynamicState = &dynamic_state,
+        .layout = pipeline_layout,
+        .renderPass = render_pass,
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = -1};
+
+    VkPipeline pipeline;
+
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info,
+                                  NULL, &pipeline) != VK_SUCCESS) {
+        CLARITY_LOG_ERROR("Failed to create graphics pipeline.");
+        return VNL_ERROR_PIPELINE_CREATION_FAILED;
+    }
+
+    out_pipeline->pipeline = pipeline;
 
     // Won't need the shader modules after they've been uploaded to the GPU
     vkDestroyShaderModule(device, vert_m, NULL);

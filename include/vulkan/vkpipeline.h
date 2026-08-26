@@ -5,8 +5,14 @@
 #include <vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>
 
+typedef struct VkPipelineInstance {
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
+} VkPipelineInstance;
+
 VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
-                             VkPipelineLayout *out_layout);
+                             VkRenderPass render_pass,
+                             VkPipelineInstance *out_pipeline);
 
 // void vk_pipeline_destroy();
 
