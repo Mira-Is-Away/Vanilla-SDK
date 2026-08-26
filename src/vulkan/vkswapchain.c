@@ -3,6 +3,9 @@
 #include <GLFW/glfw3.h>
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
+#ifndef NDEBUG
+#define MIRA_CLARITY_DEBUG
+#endif
 #include <mira/clarity.h>
 
 VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
@@ -141,6 +144,12 @@ VkExtent2D vk_swapchain_extent(GLFWwindow *window,
 VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                               VkSurfaceKHR surface, GLFWwindow *window,
                               VkSwapchainInstance *out_sc) {
+    CLARITY_ASSERT(physical_device != VK_NULL_HANDLE,
+                   "Physical device cannot be NULL.");
+    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(surface != VK_NULL_HANDLE, "Surface cannot be NULL.");
+    CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
+    CLARITY_ASSERT(out_sc != NULL, "Output swapchain pointer cannot be NULL.");
 
     CLARITY_LOG_INFO("Creating Vulkan Swapchain.");
 

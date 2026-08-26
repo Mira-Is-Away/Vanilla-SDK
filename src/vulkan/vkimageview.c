@@ -1,12 +1,18 @@
 #include <vulkan/vkimageview.h>
 
 #include <core/vnl_status.h>
+#ifndef NDEBUG
+#define MIRA_CLARITY_DEBUG
+#endif
 #include <mira/clarity.h>
 #include <mira/darray.h>
 #include <vulkan/vulkan.h>
 
 VnlStatus vk_image_view_create(VkDevice device, const DARRAY(VkImage) images,
                                VkFormat format, DARRAY(VkImageView) * views) {
+    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(images != NULL, "Images array cannot be NULL.");
+    CLARITY_ASSERT(views != NULL, "Output views pointer cannot be NULL.");
 
     for (size_t i = 0; i < DARRAY_SIZE(images); i++) {
         VkImageViewCreateInfo create_info = {
