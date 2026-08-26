@@ -18,6 +18,10 @@
 
 VnlStatus vk_shader_module_create(VkDevice device, const char *shader_src,
                                   size_t src_size, VkShaderModule *out_module) {
+    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(shader_src != NULL, "Shader source cannot be NULL.");
+    CLARITY_ASSERT(out_module != NULL,
+                   "Output shader module pointer cannot be NULL.");
 
     VkShaderModuleCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,

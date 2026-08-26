@@ -1,10 +1,17 @@
 #include <vulkan/vkrenderpass.h>
 
 #include <core/vnl_status.h>
+#ifndef NDEBUG
+#define MIRA_CLARITY_DEBUG
+#endif
 #include <mira/clarity.h>
 
 VnlStatus vk_render_pass_create(VkDevice device, VkSwapchainInstance sc,
                                 VkRenderPass *out_rp) {
+    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(out_rp != NULL,
+                   "Output render pass pointer cannot be NULL.");
+
     VkAttachmentDescription colour_attachment = (VkAttachmentDescription){
         .format = sc.format,
         .samples = VK_SAMPLE_COUNT_1_BIT,

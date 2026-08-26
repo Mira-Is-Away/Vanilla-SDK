@@ -2,6 +2,9 @@
 
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
+#ifndef NDEBUG
+#define MIRA_CLARITY_DEBUG
+#endif
 #include <mira/clarity.h>
 #include <mira/darray.h>
 #include <vulkan/vkshadermodules.h>
@@ -9,6 +12,10 @@
 
 VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
                              VkPipelineLayout *out_layout) {
+    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(out_layout != NULL,
+                   "Output pipeline layout pointer cannot be NULL.");
+
     size_t vert_s, frag_s;
     const char *vert = vk_shader_read("vertex.vert.spv", &vert_s);
     const char *frag = vk_shader_read("fragment.frag.spv", &frag_s);
