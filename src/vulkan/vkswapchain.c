@@ -151,8 +151,6 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
     CLARITY_ASSERT(out_sc != NULL, "Output swapchain pointer cannot be NULL.");
 
-    CLARITY_LOG_INFO("Creating Vulkan Swapchain.");
-
     // Fetching information about the swapchain capabilities
     VkSwapchainInfo sc_info =
         vk_swapchain_query_support(physical_device, surface);
