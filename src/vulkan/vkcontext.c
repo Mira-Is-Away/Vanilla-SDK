@@ -33,7 +33,7 @@ typedef struct VkContext {
     VkSurfaceKHR surface;
     VkSwapchainInstance swapchain;
     DARRAY(VkImageView) views;
-    VkPipelineLayout pipeline_layout;
+    VkPipelineInstance pipeline;
     VkRenderPass render_pass;
 } VkContext;
 
@@ -398,7 +398,8 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     vkctx->swapchain.images = NULL;
     vkctx->views = NULL;
     vkctx->render_pass = VK_NULL_HANDLE;
-    vkctx->pipeline_layout = VK_NULL_HANDLE;
+    vkctx->pipeline.pipeline = VK_NULL_HANDLE;
+    vkctx->pipeline.layout = VK_NULL_HANDLE;
 
     VnlStatus status;
 
@@ -434,7 +435,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
         goto cleanup;
 
     status = vk_pipeline_create(vkctx->device, vkctx->swapchain,
-                                &vkctx->pipeline_layout);
+                                vkctx->render_pass, &vkctx->pipeline);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -452,10 +453,14 @@ void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
         CLARITY_LOG_INFO("Shutting down Vulkan Context.");
 
-        if (vkctx->pipeline_layout != VK_NULL_HANDLE) {
-            vkDestroyPipelineLayout(vkctx->device, vkctx->pipeline_layout,
+        if (vkctx->pipeline.pipeline != VK_NULL_HANDLE) {
+            vkDestroyPipeline(vkctx->device, vkctx->pipeline.pipeline, NULL);
+            vkctx->pipeline.pipeline = VK_NULL_HANDLE;
+        }
+        if (vkctx->pipeline.layout != VK_NULL_HANDLE) {
+            vkDestroyPipelineLayout(vkctx->device, vkctx->pipeline.layout,
                                     NULL);
-            vkctx->pipeline_layout = VK_NULL_HANDLE;
+            vkctx->pipeline.layout = VK_NULL_HANDLE;
         }
         if (vkctx->render_pass != VK_NULL_HANDLE) {
             vkDestroyRenderPass(vkctx->device, vkctx->render_pass, NULL);
