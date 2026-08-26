@@ -144,8 +144,6 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
 
-    CLARITY_LOG_INFO("Initializing Vulkan Instance.");
-
     u32 extension_count = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
 
@@ -162,7 +160,6 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     }
 
     vkctx->instance = instance;
-    CLARITY_LOG_INFO("Vulkan Instance created successfully.");
     return VNL_SUCCESS;
 }
 
@@ -217,8 +214,6 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx->instance != VK_NULL_HANDLE,
                    "Vulkan Instance cannot be NULL.");
 
-    CLARITY_LOG_INFO("Picking Vulkan Physical Device.");
-
     VkPhysicalDevice physical_device = VK_NULL_HANDLE;
     u32 device_count = 0;
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, NULL);
@@ -252,7 +247,6 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     }
 
     vkctx->physical_device = physical_device;
-    CLARITY_LOG_INFO("Vulkan Physical Device picked successfully.");
     return VNL_SUCCESS;
 }
 
@@ -260,8 +254,6 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
     CLARITY_ASSERT(vkctx->physical_device != VK_NULL_HANDLE,
                    "Physical device cannot be NULL.");
-
-    CLARITY_LOG_INFO("Creating Vulkan Logical Device.");
 
     VkPhysicalDeviceFeatures device_features = {0};
     VkQueueFamilyIndices indices =
@@ -333,15 +325,12 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     vkGetDeviceQueue(vkctx->device, indices.present_family, 0,
                      &vkctx->present_queue);
 
-    CLARITY_LOG_INFO("Vulkan Logical Device created successfully.");
     return VNL_SUCCESS;
 }
 
 static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
     CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
-
-    CLARITY_LOG_INFO("Creating Vulkan Window Surface.");
 
     VkResult result =
         glfwCreateWindowSurface(vkctx->instance, window, NULL, &vkctx->surface);
@@ -351,7 +340,6 @@ static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
         return VNL_ERROR_SURFACE_CREATION_FAILED;
     }
 
-    CLARITY_LOG_INFO("Vulkan Window Surface created successfully.");
     return VNL_SUCCESS;
 }
 
@@ -360,8 +348,6 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
     CLARITY_ASSERT(out_ctx != NULL, "out_ctx pointer cannot be NULL.");
-
-    CLARITY_LOG_INFO("Initializing Vulkan Context.");
 
     VkContext *vkctx = CLARITY_MALLOC(sizeof(VkContext));
     if (vkctx) {
@@ -440,7 +426,6 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
         goto cleanup;
 
     *out_ctx = vkctx;
-    CLARITY_LOG_INFO("Vulkan Context initialized successfully.");
     return VNL_SUCCESS;
 
 cleanup:
@@ -451,8 +436,6 @@ cleanup:
 
 void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
-        CLARITY_LOG_INFO("Shutting down Vulkan Context.");
-
         if (vkctx->pipeline.pipeline != VK_NULL_HANDLE) {
             vkDestroyPipeline(vkctx->device, vkctx->pipeline.pipeline, NULL);
             vkctx->pipeline.pipeline = VK_NULL_HANDLE;
@@ -496,7 +479,5 @@ void vulkan_shutdown(VkContext *vkctx) {
             vkctx->instance = VK_NULL_HANDLE;
         }
         CLARITY_FREE(vkctx);
-
-        CLARITY_LOG_INFO("Vulkan Context shut down successfully.");
     }
 }

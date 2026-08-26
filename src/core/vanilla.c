@@ -24,23 +24,18 @@ struct VnlEngine {
 };
 
 static VnlStatus vnl_init_glfw() {
-    CLARITY_LOG_INFO("Initializing GLFW.");
-
     bool glfw_status = glfwInit();
 
     if (!glfw_status) {
         return VNL_ERROR_GLFW_INIT_FAILED;
     }
 
-    CLARITY_LOG_INFO("GLFW has initialised successfully.");
     return VNL_SUCCESS;
 }
 
 VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(out_engine != NULL, "Output engine pointer cannot be NULL.");
-
-    CLARITY_LOG_INFO("Initializing Vanilla SDK Components.");
 
     VnlStatus status;
 
@@ -68,7 +63,6 @@ VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
     }
 
     *out_engine = engine;
-    CLARITY_LOG_INFO("Vanilla has initialised successfully.");
     return VNL_SUCCESS;
 }
 
@@ -91,14 +85,10 @@ void vnl_shutdown(VnlEngine *engine) {
     if (!engine)
         return;
 
-    CLARITY_LOG_INFO("Shutting down Vanilla Engine.");
-
     vulkan_shutdown(engine->vkctx);
     vnl_window_destroy(engine->window);
     glfwTerminate();
     CLARITY_FREE(engine);
 
     CLARITY_MEM_REPORT();
-
-    CLARITY_LOG_INFO("Vanilla has shut down successfully.");
 }

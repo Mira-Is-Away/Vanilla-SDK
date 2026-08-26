@@ -32,7 +32,6 @@ VnlStatus vnl_window_create(const VnlConfig *config, GLFWwindow **out_window) {
 
     *out_window = window;
 
-    CLARITY_LOG_INFO("GLFW window created successfully.");
     return VNL_SUCCESS;
 }
 
