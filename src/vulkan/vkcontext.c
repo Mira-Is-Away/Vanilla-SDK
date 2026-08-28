@@ -17,6 +17,7 @@
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
 #include <vnl_ds/vnl_list.h>
+#include <vulkan/vkframebuffer.h>
 #include <vulkan/vkimageview.h>
 #include <vulkan/vkpipeline.h>
 #include <vulkan/vkqueue.h>
@@ -438,6 +439,11 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
         .extent = vkctx->swapchain.extent,
     };
     status = vk_pipeline_create(&pipeline_desc, &vkctx->pipeline);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
+
+    status = vk_framebuffers_create();
+
     if (status != VNL_SUCCESS)
         goto cleanup;
 
