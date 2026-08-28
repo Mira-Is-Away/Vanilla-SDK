@@ -405,23 +405,39 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_swapchain_create(vkctx->physical_device, vkctx->device,
-                                 vkctx->surface, window, &vkctx->swapchain);
+    VkSwapchainDesc swapchain_desc = {
+        .physical_device = vkctx->physical_device,
+        .device = vkctx->device,
+        .surface = vkctx->surface,
+        .window = window,
+    };
+    status = vk_swapchain_create(&swapchain_desc, &vkctx->swapchain);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_image_view_create(vkctx->device, vkctx->swapchain.images,
-                                  vkctx->swapchain.format, &vkctx->views);
+    VkImageViewDesc image_view_desc = {
+        .device = vkctx->device,
+        .images = vkctx->swapchain.images,
+        .format = vkctx->swapchain.format,
+    };
+    status = vk_image_view_create(&image_view_desc, &vkctx->views);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_render_pass_create(vkctx->device, vkctx->swapchain,
-                                   &vkctx->render_pass);
+    VkRenderPassDesc render_pass_desc = {
+        .device = vkctx->device,
+        .format = vkctx->swapchain.format,
+    };
+    status = vk_render_pass_create(&render_pass_desc, &vkctx->render_pass);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_pipeline_create(vkctx->device, vkctx->swapchain,
-                                vkctx->render_pass, &vkctx->pipeline);
+    VkPipelineDesc pipeline_desc = {
+        .device = vkctx->device,
+        .render_pass = vkctx->render_pass,
+        .extent = vkctx->swapchain.extent,
+    };
+    status = vk_pipeline_create(&pipeline_desc, &vkctx->pipeline);
     if (status != VNL_SUCCESS)
         goto cleanup;
 

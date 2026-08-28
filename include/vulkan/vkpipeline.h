@@ -10,8 +10,13 @@ typedef struct VkPipelineInstance {
     VkPipelineLayout layout;
 } VkPipelineInstance;
 
-VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
-                             VkRenderPass render_pass,
+typedef struct {
+    VkDevice device;
+    VkRenderPass render_pass;
+    VkExtent2D extent;
+} VkPipelineDesc;
+
+VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
                              VkPipelineInstance *out_pipeline);
 
 // void vk_pipeline_destroy();

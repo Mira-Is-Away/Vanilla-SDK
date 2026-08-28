@@ -21,18 +21,19 @@ static VkPipelineDynamicStateCreateInfo _create_dynamic_pipeline_state() {
         .pDynamicStates = dynamic_state_list};
 }
 
-VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
-                             VkRenderPass render_pass,
+VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
                              VkPipelineInstance *out_pipeline) {
-    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(desc != NULL, "Pipeline descriptor cannot be NULL.");
+    CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
+                   "Logical device cannot be NULL.");
+    CLARITY_ASSERT(desc->render_pass != VK_NULL_HANDLE,
+                   "Render pass cannot be NULL.");
     CLARITY_ASSERT(out_pipeline != NULL,
                    "Output pipeline layout pointer cannot be NULL.");
 
     size_t vert_s, frag_s;
     const char *vert = vk_shader_read("vertex.vert.spv", &vert_s);
     const char *frag = vk_shader_read("fragment.frag.spv", &frag_s);
-    sc = sc; // This is here temporarily to avoid "unused variable" compiler
-             // warnings.
 
     if (!vert || !frag) {
         CLARITY_LOG_ERROR("Failed to fetch shader bytecode.");
@@ -40,12 +41,14 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
     }
 
     VkShaderModule vert_m, frag_m;
-    if (vk_shader_module_create(device, vert, vert_s, &vert_m) != VNL_SUCCESS) {
+    if (vk_shader_module_create(desc->device, vert, vert_s, &vert_m) !=
+        VNL_SUCCESS) {
         CLARITY_LOG_ERROR("Failed to create vertex shader module.");
         return VNL_ERROR_SHADER_CREATION_FAILED;
     }
 
-    if (vk_shader_module_create(device, frag, frag_s, &frag_m) != VNL_SUCCESS) {
+    if (vk_shader_module_create(desc->device, frag, frag_s, &frag_m) !=
+        VNL_SUCCESS) {
         CLARITY_LOG_ERROR("Failed to create fragment shader module.");
         return VNL_ERROR_SHADER_CREATION_FAILED;
     }
@@ -99,12 +102,12 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
             .viewportCount = 1,
             .pViewports = &(VkViewport){.x = 0.0f,
                                         .y = 0.0f,
-                                        .width = (float)sc.extent.width,
-                                        .height = (float)sc.extent.height,
+                                        .width = (float)desc->extent.width,
+                                        .height = (float)desc->extent.height,
                                         .minDepth = 0.0f,
                                         .maxDepth = 1.0f},
             .scissorCount = 1,
-            .pScissors = &(VkRect2D){.offset = {0, 0}, .extent = sc.extent}};
+            .pScissors = &(VkRect2D){.offset = {0, 0}, .extent = desc->extent}};
 
     VkPipelineRasterizationStateCreateInfo rast_info =
         (VkPipelineRasterizationStateCreateInfo){
@@ -172,8 +175,8 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = NULL};
 
-    if (vkCreatePipelineLayout(device, &layout_info, NULL, &pipeline_layout) !=
-        VK_SUCCESS) {
+    if (vkCreatePipelineLayout(desc->device, &layout_info, NULL,
+                               &pipeline_layout) != VK_SUCCESS) {
         return VNL_ERROR_PIPELINE_CREATION_FAILED;
     }
 
@@ -192,15 +195,16 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
         .pColorBlendState = &colour_blend_info,
         .pDynamicState = &dynamic_state,
         .layout = pipeline_layout,
-        .renderPass = render_pass,
+        .renderPass = desc->render_pass,
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1};
 
     VkPipeline pipeline;
 
-    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info,
-                                  NULL, &pipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(desc->device, VK_NULL_HANDLE, 1,
+                                  &pipeline_info, NULL,
+                                  &pipeline) != VK_SUCCESS) {
         CLARITY_LOG_ERROR("Failed to create graphics pipeline.");
         return VNL_ERROR_PIPELINE_CREATION_FAILED;
     }
@@ -208,8 +212,8 @@ VnlStatus vk_pipeline_create(VkDevice device, VkSwapchainInstance sc,
     out_pipeline->pipeline = pipeline;
 
     // Won't need the shader modules after they've been uploaded to the GPU
-    vkDestroyShaderModule(device, vert_m, NULL);
-    vkDestroyShaderModule(device, frag_m, NULL);
+    vkDestroyShaderModule(desc->device, vert_m, NULL);
+    vkDestroyShaderModule(desc->device, frag_m, NULL);
 
     return VNL_SUCCESS;
 }
