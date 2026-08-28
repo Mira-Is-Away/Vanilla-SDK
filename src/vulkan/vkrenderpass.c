@@ -6,14 +6,16 @@
 #endif
 #include <mira/clarity.h>
 
-VnlStatus vk_render_pass_create(VkDevice device, VkSwapchainInstance sc,
+VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
                                 VkRenderPass *out_rp) {
-    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
+    CLARITY_ASSERT(desc != NULL, "Render pass descriptor cannot be NULL.");
+    CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
+                   "Logical device cannot be NULL.");
     CLARITY_ASSERT(out_rp != NULL,
                    "Output render pass pointer cannot be NULL.");
 
     VkAttachmentDescription colour_attachment = (VkAttachmentDescription){
-        .format = sc.format,
+        .format = desc->format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -51,8 +53,8 @@ VnlStatus vk_render_pass_create(VkDevice device, VkSwapchainInstance sc,
      * This functionality has been superseded by Vulkan 1.4
      */
     VkRenderPass render_pass;
-    if (vkCreateRenderPass(device, &render_pass_info, NULL, &render_pass) !=
-        VK_SUCCESS) {
+    if (vkCreateRenderPass(desc->device, &render_pass_info, NULL,
+                           &render_pass) != VK_SUCCESS) {
         CLARITY_LOG_ERROR("Failure to create Vulkan render pass.");
         return VNL_ERROR_RENDER_PASS_CREATION_FAILED;
     }

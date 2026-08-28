@@ -5,7 +5,13 @@
 #include <mira/darray.h>
 #include <vulkan/vulkan.h>
 
-VnlStatus vk_image_view_create(VkDevice device, const DARRAY(VkImage) images,
-                               VkFormat format, DARRAY(VkImageView) * views);
+typedef struct {
+    VkDevice device;
+    const DARRAY(VkImage) images;
+    VkFormat format;
+} VkImageViewDesc;
+
+VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
+                               DARRAY(VkImageView) * out_views);
 
 #endif

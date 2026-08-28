@@ -141,26 +141,27 @@ VkExtent2D vk_swapchain_extent(GLFWwindow *window,
                                              cap->maxImageExtent.height)};
 }
 
-VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
-                              VkSurfaceKHR surface, GLFWwindow *window,
+VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
                               VkSwapchainInstance *out_sc) {
-    CLARITY_ASSERT(physical_device != VK_NULL_HANDLE,
+    CLARITY_ASSERT(desc != NULL, "Swapchain descriptor cannot be NULL.");
+    CLARITY_ASSERT(desc->physical_device != VK_NULL_HANDLE,
                    "Physical device cannot be NULL.");
-    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
-    CLARITY_ASSERT(surface != VK_NULL_HANDLE, "Surface cannot be NULL.");
-    CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
+    CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
+                   "Logical device cannot be NULL.");
+    CLARITY_ASSERT(desc->surface != VK_NULL_HANDLE, "Surface cannot be NULL.");
+    CLARITY_ASSERT(desc->window != NULL, "GLFW Window cannot be NULL.");
     CLARITY_ASSERT(out_sc != NULL, "Output swapchain pointer cannot be NULL.");
 
     // Fetching information about the swapchain capabilities
     VkSwapchainInfo sc_info =
-        vk_swapchain_query_support(physical_device, surface);
+        vk_swapchain_query_support(desc->physical_device, desc->surface);
     VkSurfaceFormatKHR surface_format =
         vk_swapchain_choose_format(sc_info.formats);
 
     VkPresentModeKHR present_mode =
         vk_swapchain_choose_present_mode(/*sc_info.present_modes*/);
 
-    VkExtent2D extent = vk_swapchain_extent(window, &sc_info.cap);
+    VkExtent2D extent = vk_swapchain_extent(desc->window, &sc_info.cap);
 
     u32 image_count = sc_info.cap.minImageCount + 1;
 
@@ -171,7 +172,7 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     // Configuring Swapchain creation
     VkSwapchainCreateInfoKHR create_info = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .surface = surface,
+        .surface = desc->surface,
         .minImageCount = image_count,
         .imageFormat = surface_format.format,
         .imageColorSpace = surface_format.colorSpace,
@@ -185,7 +186,7 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
         .oldSwapchain = VK_NULL_HANDLE};
 
     VkQueueFamilyIndices indices =
-        vk_find_queue_families(physical_device, surface);
+        vk_find_queue_families(desc->physical_device, desc->surface);
 
     u32 queue_family_indices[] = {indices.graphics_family,
                                   indices.present_family};
@@ -202,7 +203,8 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
 
     // Swapchain creation
     VkSwapchainKHR sc;
-    if (vkCreateSwapchainKHR(device, &create_info, NULL, &sc) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(desc->device, &create_info, NULL, &sc) !=
+        VK_SUCCESS) {
         CLARITY_LOG_ERROR("Vulkan Swapchain creation has failed.");
         return VNL_ERROR_SWAPCHAIN_CREATION_FAILED;
     }
@@ -213,10 +215,10 @@ VnlStatus vk_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     out_sc->images = NULL;
 
     // Retrieving handles for the swapchain images
-    vkGetSwapchainImagesKHR(device, sc, &image_count, NULL);
+    vkGetSwapchainImagesKHR(desc->device, sc, &image_count, NULL);
     VkImage *sc_images = CLARITY_MALLOC(sizeof(VkImage) * image_count);
     if (sc_images) {
-        vkGetSwapchainImagesKHR(device, sc, &image_count, sc_images);
+        vkGetSwapchainImagesKHR(desc->device, sc, &image_count, sc_images);
         for (u32 i = 0; i < image_count; i++) {
             DARRAY_PUSH(out_sc->images, sc_images[i]);
         }

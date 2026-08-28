@@ -8,20 +8,22 @@
 #include <mira/darray.h>
 #include <vulkan/vulkan.h>
 
-VnlStatus vk_image_view_create(VkDevice device, const DARRAY(VkImage) images,
-                               VkFormat format, DARRAY(VkImageView) * views) {
-    CLARITY_ASSERT(device != VK_NULL_HANDLE, "Logical device cannot be NULL.");
-    CLARITY_ASSERT(images != NULL, "Images array cannot be NULL.");
-    CLARITY_ASSERT(views != NULL, "Output views pointer cannot be NULL.");
+VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
+                               DARRAY(VkImageView) * out_views) {
+    CLARITY_ASSERT(desc != NULL, "ImageView descriptor cannot be NULL.");
+    CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
+                   "Logical device cannot be NULL.");
+    CLARITY_ASSERT(desc->images != NULL, "Images array cannot be NULL.");
+    CLARITY_ASSERT(out_views != NULL, "Output views pointer cannot be NULL.");
 
-    for (size_t i = 0; i < DARRAY_SIZE(images); i++) {
+    for (size_t i = 0; i < DARRAY_SIZE(desc->images); i++) {
         VkImageViewCreateInfo create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = NULL,
             .flags = 0,
-            .image = images[i],
+            .image = desc->images[i],
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = format,
+            .format = desc->format,
             .components =
                 (VkComponentMapping){.r = VK_COMPONENT_SWIZZLE_IDENTITY,
                                      .g = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -35,13 +37,13 @@ VnlStatus vk_image_view_create(VkDevice device, const DARRAY(VkImage) images,
                 .layerCount = 1}};
 
         VkImageView view;
-        if (vkCreateImageView(device, &create_info, NULL, &view) !=
+        if (vkCreateImageView(desc->device, &create_info, NULL, &view) !=
             VK_SUCCESS) {
             CLARITY_LOG_ERROR("Failed to create VkImageView (#%d).", i);
             return VNL_ERROR_IMAGE_VIEW_CREATION_FAILED;
         }
 
-        DARRAY_PUSH(*views, view);
+        DARRAY_PUSH(*out_views, view);
     }
 
     return VNL_SUCCESS;
