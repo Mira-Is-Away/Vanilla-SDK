@@ -19,7 +19,7 @@
   spacing: 1.2em
 )
 
-#show raw: set text(font: "Jetbrains Mono")
+#show raw: set text(font: "Liberation Mono")
 #show raw.where(block: true): set par(justify: false)
 #show raw.where(block: true): it => {
   layout(size => [
