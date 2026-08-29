@@ -33,9 +33,10 @@ typedef struct VkContext {
     VkQueue present_queue;
     VkSurfaceKHR surface;
     VkSwapchainInstance swapchain;
-    DARRAY(VkImageView) views;
+    DARRAY(VkImageView) image_views;
     VkPipelineInstance pipeline;
     VkRenderPass render_pass;
+    DARRAY(VkFramebuffer) framebuffers;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -383,10 +384,11 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     vkctx->swapchain.format = VK_FORMAT_UNDEFINED;
     vkctx->swapchain.extent = (VkExtent2D){0, 0};
     vkctx->swapchain.images = NULL;
-    vkctx->views = NULL;
+    vkctx->image_views = NULL;
     vkctx->render_pass = VK_NULL_HANDLE;
     vkctx->pipeline.pipeline = VK_NULL_HANDLE;
     vkctx->pipeline.layout = VK_NULL_HANDLE;
+    vkctx->framebuffers = NULL;
 
     VnlStatus status;
 
@@ -421,7 +423,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
         .images = vkctx->swapchain.images,
         .format = vkctx->swapchain.format,
     };
-    status = vk_image_view_create(&image_view_desc, &vkctx->views);
+    status = vk_image_view_create(&image_view_desc, &vkctx->image_views);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -442,8 +444,11 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_framebuffers_create();
-
+    VkFramebufferDesc framebuffer_desc = {.device = vkctx->device,
+                                          .image_views = vkctx->image_views,
+                                          .render_pass = vkctx->render_pass,
+                                          .extent = vkctx->swapchain.extent};
+    status = vk_framebuffers_create(&framebuffer_desc, &vkctx->framebuffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -458,6 +463,11 @@ cleanup:
 
 void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
+        if (vkctx->framebuffers != NULL) {
+            DARRAY_FOREACH(VkFramebuffer, framebuffer, vkctx->framebuffers) {
+                vkDestroyFramebuffer(vkctx->device, *framebuffer, NULL);
+            }
+        }
         if (vkctx->pipeline.pipeline != VK_NULL_HANDLE) {
             vkDestroyPipeline(vkctx->device, vkctx->pipeline.pipeline, NULL);
             vkctx->pipeline.pipeline = VK_NULL_HANDLE;
@@ -471,13 +481,13 @@ void vulkan_shutdown(VkContext *vkctx) {
             vkDestroyRenderPass(vkctx->device, vkctx->render_pass, NULL);
             vkctx->render_pass = VK_NULL_HANDLE;
         }
-        if (vkctx->views != NULL) {
-            DARRAY_FOREACH(VkImageView, view, vkctx->views) {
+        if (vkctx->image_views != NULL) {
+            DARRAY_FOREACH(VkImageView, view, vkctx->image_views) {
                 if (*view != VK_NULL_HANDLE) {
                     vkDestroyImageView(vkctx->device, *view, NULL);
                 }
             }
-            DARRAY_FREE(vkctx->views);
+            DARRAY_FREE(vkctx->image_views);
         }
         if (vkctx->swapchain.images != NULL) {
             DARRAY_FREE(vkctx->swapchain.images);
