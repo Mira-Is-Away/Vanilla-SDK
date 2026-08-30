@@ -17,6 +17,7 @@
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
 #include <vnl_ds/vnl_list.h>
+#include <vulkan/vkcommandpool.h>
 #include <vulkan/vkframebuffer.h>
 #include <vulkan/vkimageview.h>
 #include <vulkan/vkpipeline.h>
@@ -37,6 +38,7 @@ typedef struct VkContext {
     VkPipelineInstance    pipeline;
     VkRenderPass          render_pass;
     DARRAY(VkFramebuffer) framebuffers;
+    VkCommandPool command_pool;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -389,6 +391,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     vkctx->pipeline.pipeline   = VK_NULL_HANDLE;
     vkctx->pipeline.layout     = VK_NULL_HANDLE;
     vkctx->framebuffers        = NULL;
+    vkctx->command_pool        = VK_NULL_HANDLE;
 
     VnlStatus status;
 
@@ -452,6 +455,14 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
+    VkCommandPoolDesc command_pool_desc = {.device = vkctx->device,
+                                           .physical_device =
+                                               vkctx->physical_device,
+                                           .surface = vkctx->surface};
+    status = vk_command_pool_create(&command_pool_desc, &vkctx->command_pool);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
+
     *out_ctx = vkctx;
     return VNL_SUCCESS;
 
@@ -463,6 +474,9 @@ cleanup:
 
 void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
+        if (vkctx->command_pool != VK_NULL_HANDLE) {
+            vkDestroyCommandPool(vkctx->device, vkctx->command_pool, NULL);
+        }
         if (vkctx->framebuffers != NULL) {
             DARRAY_FOREACH(VkFramebuffer, framebuffer, vkctx->framebuffers) {
                 vkDestroyFramebuffer(vkctx->device, *framebuffer, NULL);
