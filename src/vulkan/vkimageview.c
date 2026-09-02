@@ -10,6 +10,7 @@
 
 VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
                                DARRAY(VkImageView)   *out_views) {
+
     CLARITY_ASSERT(desc != NULL, "ImageView descriptor cannot be NULL.");
     CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
                    "Logical device cannot be NULL.");
