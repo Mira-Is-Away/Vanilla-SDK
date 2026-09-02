@@ -28,18 +28,18 @@
 #include <vulkan/vulkan.h>
 
 typedef struct VkContext {
-    VkInstance            instance;
-    VkPhysicalDevice      physical_device;
-    VkDevice              device;
-    VkQueue               graphics_queue;
-    VkQueue               present_queue;
-    VkSurfaceKHR          surface;
-    VkSwapchainInstance   swapchain;
-    DARRAY(VkImageView)   image_views;
-    VkPipelineInstance    pipeline;
-    VkRenderPass          render_pass;
-    DARRAY(VkFramebuffer) framebuffers;
-    VkCommandPool command_pool;
+    VkInstance              instance;
+    VkPhysicalDevice        physical_device;
+    VkDevice                device;
+    VkQueue                 graphics_queue;
+    VkQueue                 present_queue;
+    VkSurfaceKHR            surface;
+    VkSwapchainInstance     swapchain;
+    DARRAY(VkImageView)     image_views;
+    VkPipelineInstance      pipeline;
+    VkRenderPass            render_pass;
+    DARRAY(VkFramebuffer)   framebuffers;
+    VkCommandPool           command_pool;
     DARRAY(VkCommandBuffer) command_buffers;
 } VkContext;
 
@@ -126,7 +126,8 @@ vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
         .flags               = 0,
         .pApplicationInfo    = app_info,
         .enabledLayerCount   = 0,
-        .ppEnabledLayerNames = NULL};
+        .ppEnabledLayerNames = NULL,
+    };
 
 #ifdef MIRA_CLARITY_DEBUG
     if (vk_check_validation_layer_support()) {
@@ -280,7 +281,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .flags            = 0,
         .queueFamilyIndex = indices.graphics_family,
         .queueCount       = 1,
-        .pQueuePriorities = &queue_priority};
+        .pQueuePriorities = &queue_priority,
+    };
 
     DARRAY_PUSH(queue_create_infos, queue_create_info);
 
@@ -291,7 +293,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
             .flags            = 0,
             .queueFamilyIndex = indices.present_family,
             .queueCount       = 1,
-            .pQueuePriorities = &queue_priority};
+            .pQueuePriorities = &queue_priority,
+        };
 
         DARRAY_PUSH(queue_create_infos, queue_create_info);
     }
@@ -309,7 +312,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .ppEnabledLayerNames     = NULL,
         .enabledExtensionCount   = DARRAY_SIZE(device_ext),
         .ppEnabledExtensionNames = device_ext,
-        .pEnabledFeatures        = &device_features};
+        .pEnabledFeatures        = &device_features,
+    };
 
 #ifdef MIRA_CLARITY_DEBUG
     if (vk_check_validation_layer_support()) {
@@ -451,33 +455,36 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
         goto cleanup;
 
     VkFramebufferDesc framebuffer_desc = {
-        .device = vkctx->device,
+        .device      = vkctx->device,
         .image_views = vkctx->image_views,
         .render_pass = vkctx->render_pass,
-        .extent = vkctx->swapchain.extent,
+        .extent      = vkctx->swapchain.extent,
     };
     status = vk_framebuffers_create(&framebuffer_desc, &vkctx->framebuffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
     VkCommandPoolDesc command_pool_desc = {
-        .device = vkctx->device,
+        .device          = vkctx->device,
         .physical_device = vkctx->physical_device,
-        .surface = vkctx->surface,
+        .surface         = vkctx->surface,
     };
     status = vk_command_pool_create(&command_pool_desc, &vkctx->command_pool);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
     VkCommandBufferDesc command_buffer_desc = {
-        .device = vkctx->device,
-        .pool = vkctx->command_pool,
+        .device               = vkctx->device,
+        .pool                 = vkctx->command_pool,
         .command_buffer_count = 1,
     };
     status = vk_command_buffers_create(&command_buffer_desc,
                                        &vkctx->command_buffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
+    CLARITY_ASSERT(vkctx->command_buffers != NULL,
+                   "Vulkan command buffer creation was successful, but "
+                   "command_buffers is NULL.");
 
     *out_ctx = vkctx;
     return VNL_SUCCESS;

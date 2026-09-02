@@ -19,7 +19,8 @@ VnlStatus vk_framebuffers_create(const VkFramebufferDesc *desc,
             .pAttachments    = image_view,
             .width           = desc->extent.width,
             .height          = desc->extent.height,
-            .layers          = 1};
+            .layers          = 1,
+        };
 
         VkFramebuffer framebuffer;
         if (vkCreateFramebuffer(desc->device, &framebuffer_info, NULL,

@@ -5,12 +5,12 @@
 #include <vulkan/vulkan.h>
 
 typedef struct {
-    VkDevice device;
+    VkDevice         device;
     VkPhysicalDevice physical_device;
-    VkSurfaceKHR surface;
+    VkSurfaceKHR     surface;
 } VkCommandPoolDesc;
 
 VnlStatus vk_command_pool_create(const VkCommandPoolDesc *desc,
-                                 VkCommandPool *out_command_pool);
+                                 VkCommandPool           *out_command_pool);
 
 #endif

@@ -16,6 +16,19 @@ typedef uint64_t u64;
 typedef float  f32;
 typedef double f64;
 
+typedef struct VnlVec2 {
+    i32 x;
+    i32 y;
+} VnlVec2;
+
+typedef struct VnlColour {
+    f32 r;
+    f32 g;
+    f32 b;
+    f32 a;
+} VnlColour;
+typedef struct VnlColour VnlColor;
+
 typedef struct VnlWindow {
     u16 width;
     u16 height;

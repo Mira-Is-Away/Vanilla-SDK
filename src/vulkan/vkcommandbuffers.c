@@ -7,16 +7,20 @@
 #endif
 #include <mira/clarity.h>
 #include <mira/darray.h>
+#include <vulkan/vkrenderpass.h>
 #include <vulkan/vulkan.h>
 
 VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
-                                    DARRAY(VkCommandBuffer) *out_buffers) {
+                                    DARRAY(VkCommandBuffer)   *out_buffers) {
+
+    CLARITY_ASSERT(desc != NULL, "VkCommandBufferDesc cannot be NULL.");
 
     VkCommandBufferAllocateInfo alloc_info = (VkCommandBufferAllocateInfo){
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = desc->pool,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = desc->command_buffer_count};
+        .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool        = desc->pool,
+        .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = desc->command_buffer_count,
+    };
 
     VkCommandBuffer *command_buffers =
         CLARITY_MALLOC(desc->command_buffer_count * sizeof(VkCommandBuffer));
@@ -35,8 +39,33 @@ VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
     return VNL_SUCCESS;
 }
 
-/*
-VnlStatus vk_command_buffer_record(VkCommandBuffer buffer, u32 image_index) {
+VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc) {
 
+    VkCommandBufferBeginInfo begin_info = {
+        .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags            = 0,
+        .pInheritanceInfo = NULL,
+    };
 
-}*/
+    if (vkBeginCommandBuffer(desc->command_buffer, &begin_info) != VK_SUCCESS) {
+        CLARITY_LOG_ERROR(
+            "Failed to begin recording into Vulkan command buffer!");
+        return VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED;
+    }
+
+    VkRenderPassBeginDesc render_pass_desc = {
+        .command_buffer = desc->command_buffer,
+        .render_pass    = desc->render_pass,
+        .framebuffers   = desc->framebuffers,
+        .image_index    = desc->image_index,
+        .offset         = {0, 0},
+        .extent         = desc->extent,
+        .clear_colour   = {1.0f, 1.0f, 1.0f, 1.0f},
+    };
+    vk_render_pass_begin(&render_pass_desc);
+
+    vkCmdBindPipeline(desc->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      desc->pipeline);
+
+    return VNL_SUCCESS;
+}

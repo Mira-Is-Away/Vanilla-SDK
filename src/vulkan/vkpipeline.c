@@ -18,7 +18,8 @@ static VkPipelineDynamicStateCreateInfo _create_dynamic_pipeline_state() {
     return (VkPipelineDynamicStateCreateInfo){
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .dynamicStateCount = DARRAY_SIZE(dynamic_state_list),
-        .pDynamicStates    = dynamic_state_list};
+        .pDynamicStates    = dynamic_state_list,
+    };
 }
 
 VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
@@ -60,7 +61,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .stage  = VK_SHADER_STAGE_VERTEX_BIT,
         .module = vert_m,
         .pName  = "main",
-        .pSpecializationInfo = NULL};
+        .pSpecializationInfo = NULL,
+    };
 
     VkPipelineShaderStageCreateInfo f_create_info = {
         .sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -69,7 +71,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .stage  = VK_SHADER_STAGE_FRAGMENT_BIT,
         .module = frag_m,
         .pName  = "main",
-        .pSpecializationInfo = NULL};
+        .pSpecializationInfo = NULL,
+    };
 
     DARRAY(VkPipelineShaderStageCreateInfo) shader_stages = NULL;
     DARRAY_PUSH(shader_stages, v_create_info);
@@ -87,27 +90,37 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .vertexBindingDescriptionCount   = 0,
         .pVertexBindingDescriptions      = NULL,
         .vertexAttributeDescriptionCount = 0,
-        .pVertexAttributeDescriptions    = NULL};
+        .pVertexAttributeDescriptions    = NULL,
+    };
 
     VkPipelineInputAssemblyStateCreateInfo in_asm_info = {
         .sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext    = NULL,
         .flags    = 0,
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-        .primitiveRestartEnable = VK_FALSE};
+        .primitiveRestartEnable = VK_FALSE,
+    };
 
     VkPipelineViewportStateCreateInfo viewport_state =
         (VkPipelineViewportStateCreateInfo){
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
             .viewportCount = 1,
-            .pViewports    = &(VkViewport){.x        = 0.0f,
-                                           .y        = 0.0f,
-                                           .width    = (float)desc->extent.width,
-                                           .height   = (float)desc->extent.height,
-                                           .minDepth = 0.0f,
-                                           .maxDepth = 1.0f},
-            .scissorCount  = 1,
-            .pScissors = &(VkRect2D){.offset = {0, 0}, .extent = desc->extent}};
+            .pViewports =
+                &(VkViewport){
+                    .x        = 0.0f,
+                    .y        = 0.0f,
+                    .width    = (float)desc->extent.width,
+                    .height   = (float)desc->extent.height,
+                    .minDepth = 0.0f,
+                    .maxDepth = 1.0f,
+                },
+            .scissorCount = 1,
+            .pScissors =
+                &(VkRect2D){
+                    .offset = {0, 0},
+                    .extent = desc->extent,
+                },
+        };
 
     VkPipelineRasterizationStateCreateInfo rast_info =
         (VkPipelineRasterizationStateCreateInfo){
@@ -123,7 +136,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
             .depthBiasEnable         = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,
             .depthBiasClamp          = 0.0f,
-            .depthBiasSlopeFactor    = 0.0f};
+            .depthBiasSlopeFactor    = 0.0f,
+        };
 
     VkPipelineMultisampleStateCreateInfo multisample_info =
         (VkPipelineMultisampleStateCreateInfo){
@@ -133,7 +147,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
             .minSampleShading      = 1.0f,
             .pSampleMask           = NULL,
             .alphaToCoverageEnable = VK_FALSE,
-            .alphaToOneEnable      = VK_FALSE};
+            .alphaToOneEnable      = VK_FALSE,
+        };
 
     /**
      * Alpha blending is currently disabled, but I'll leave the optional fields
@@ -144,7 +159,7 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
             .colorWriteMask =
                 VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                 VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-            .blendEnable = VK_FALSE
+            .blendEnable = VK_FALSE,
             //.srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
             //.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
             //.colorBlendOp = VK_BLEND_OP_ADD,
@@ -162,7 +177,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .blendConstants[0] = 0.0f,
         .blendConstants[1] = 0.0f,
         .blendConstants[2] = 0.0f,
-        .blendConstants[3] = 0.0f};
+        .blendConstants[3] = 0.0f,
+    };
 
     VkPipelineDynamicStateCreateInfo dynamic_state =
         _create_dynamic_pipeline_state();
@@ -173,7 +189,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .setLayoutCount         = 0,
         .pSetLayouts            = NULL,
         .pushConstantRangeCount = 0,
-        .pPushConstantRanges    = NULL};
+        .pPushConstantRanges    = NULL,
+    };
 
     if (vkCreatePipelineLayout(desc->device, &layout_info, NULL,
                                &pipeline_layout) != VK_SUCCESS) {
@@ -198,7 +215,8 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .renderPass          = desc->render_pass,
         .subpass             = 0,
         .basePipelineHandle  = VK_NULL_HANDLE,
-        .basePipelineIndex   = -1};
+        .basePipelineIndex   = -1,
+    };
 
     VkPipeline pipeline;
 

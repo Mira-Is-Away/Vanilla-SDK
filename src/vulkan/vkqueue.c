@@ -8,10 +8,13 @@
 
 VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
                                             VkSurfaceKHR     surface) {
-    VkQueueFamilyIndices indices = {.has_graphics_family = false,
-                                    .has_present_family  = false,
-                                    .graphics_family     = 0,
-                                    .present_family      = 0};
+
+    VkQueueFamilyIndices indices = {
+        .has_graphics_family = false,
+        .has_present_family  = false,
+        .graphics_family     = 0,
+        .present_family      = 0,
+    };
 
     u32 queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, NULL);

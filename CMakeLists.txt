@@ -38,7 +38,7 @@ find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
 # Enables automatic formatting if clang-format is installed.
-find_program(CLANG_FORMAT_EXE NAMES clang-format)
+find_program(CLANG_FORMAT_EXE NAMES clang-format DOC "Path to clang's autoformatter")
 
 if(CLANG_FORMAT_EXE)
     file(GLOB_RECURSE ALL_SOURCE_FILES 

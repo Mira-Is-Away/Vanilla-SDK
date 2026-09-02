@@ -131,6 +131,7 @@ static inline u32 _u32_clamp(u32 val, u32 min, u32 max) {
 
 VkExtent2D vk_swapchain_extent(GLFWwindow               *window,
                                VkSurfaceCapabilitiesKHR *cap) {
+
     if (cap->currentExtent.width != UINT32_MAX)
         return cap->currentExtent;
 
@@ -185,13 +186,16 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
         .compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .presentMode      = present_mode,
         .clipped          = VK_TRUE,
-        .oldSwapchain     = VK_NULL_HANDLE};
+        .oldSwapchain     = VK_NULL_HANDLE,
+    };
 
     VkQueueFamilyIndices indices =
         vk_find_queue_families(desc->physical_device, desc->surface);
 
-    u32 queue_family_indices[] = {indices.graphics_family,
-                                  indices.present_family};
+    u32 queue_family_indices[] = {
+        indices.graphics_family,
+        indices.present_family,
+    };
 
     if (indices.graphics_family != indices.present_family) {
         create_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;

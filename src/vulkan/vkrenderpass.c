@@ -1,10 +1,12 @@
 #include <vulkan/vkrenderpass.h>
 
 #include <core/vnl_status.h>
+#include <core/vnl_types.h>
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG
 #endif
 #include <mira/clarity.h>
+#include <vulkan/vulkan.h>
 
 VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
                                 VkRenderPass           *out_rp) {
@@ -21,7 +23,8 @@ VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
         .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+        .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    };
 
     /**
      * This functionality has been superseded by Vulkan 1.2
@@ -40,14 +43,16 @@ VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
         .pResolveAttachments     = NULL,
         .pDepthStencilAttachment = NULL,
         .preserveAttachmentCount = 0,
-        .pPreserveAttachments    = NULL};
+        .pPreserveAttachments    = NULL,
+    };
 
     VkRenderPassCreateInfo render_pass_info = (VkRenderPassCreateInfo){
         .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .attachmentCount = 1,
         .pAttachments    = &colour_attachment,
         .subpassCount    = 1,
-        .pSubpasses      = &subpass};
+        .pSubpasses      = &subpass,
+    };
 
     /**
      * This functionality has been superseded by Vulkan 1.4
@@ -62,4 +67,21 @@ VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
     *out_rp = render_pass;
 
     return VNL_SUCCESS;
+}
+
+void vk_render_pass_begin(const VkRenderPassBeginDesc *desc) {
+    CLARITY_ASSERT(desc != NULL, "VkRenderPassBeginDesc cannot be NULL.");
+
+    VkRenderPassBeginInfo info = (VkRenderPassBeginInfo){
+        .sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .renderPass        = desc->render_pass,
+        .framebuffer       = desc->framebuffers[desc->image_index],
+        .renderArea.offset = {desc->offset.x, desc->offset.y},
+        .renderArea.extent = desc->extent,
+        .clearValueCount   = 1,
+        .pClearValues      = (VkClearValue *)&desc->clear_colour,
+    };
+
+    vkCmdBeginRenderPass(desc->command_buffer, &info,
+                         VK_SUBPASS_CONTENTS_INLINE);
 }
