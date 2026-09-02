@@ -30,8 +30,8 @@ typedef struct {
 VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
                                            VkSurfaceKHR surface);
 
-VkSurfaceFormatKHR vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR)
-                                                  available_formats);
+VkSurfaceFormatKHR
+vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats);
 
 VkPresentModeKHR vk_swapchain_choose_present_mode(
     /*DARRAY(VkPresentModeKHR)

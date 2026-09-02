@@ -10,7 +10,7 @@
 #include <vulkan/vulkan.h>
 
 VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
-                                    DARRAY(VkCommandBuffer) * out_buffers) {
+                                    DARRAY(VkCommandBuffer) *out_buffers) {
 
     VkCommandBufferAllocateInfo alloc_info = (VkCommandBufferAllocateInfo){
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -37,5 +37,6 @@ VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
 
 /*
 VnlStatus vk_command_buffer_record(VkCommandBuffer buffer, u32 image_index) {
+
 
 }*/

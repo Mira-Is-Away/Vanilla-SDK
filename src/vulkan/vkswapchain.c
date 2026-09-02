@@ -52,8 +52,8 @@ VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
     return info;
 }
 
-VkSurfaceFormatKHR vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR)
-                                                  available_formats) {
+VkSurfaceFormatKHR
+vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats) {
     DARRAY_FOREACH(VkSurfaceFormatKHR, format, available_formats) {
         if (format->format == VK_FORMAT_B8G8R8A8_SRGB &&
             format->colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)

@@ -12,6 +12,6 @@ typedef struct {
 } VkImageViewDesc;
 
 VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
-                               DARRAY(VkImageView) * out_views);
+                               DARRAY(VkImageView) *out_views);
 
 #endif

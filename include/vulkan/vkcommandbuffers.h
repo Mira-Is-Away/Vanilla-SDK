@@ -13,6 +13,6 @@ typedef struct {
 } VkCommandBufferDesc;
 
 VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
-                                    DARRAY(VkCommandBuffer) * out_buffers);
+                                    DARRAY(VkCommandBuffer) *out_buffers);
 
 #endif

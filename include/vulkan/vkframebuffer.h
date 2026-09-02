@@ -13,6 +13,6 @@ typedef struct {
 } VkFramebufferDesc;
 
 VnlStatus vk_framebuffers_create(const VkFramebufferDesc *desc,
-                                 DARRAY(VkFramebuffer) * out_framebuffers);
+                                 DARRAY(VkFramebuffer) *out_framebuffers);
 
 #endif
