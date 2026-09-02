@@ -63,8 +63,10 @@ VkSurfaceFormatKHR vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR)
     return available_formats[0];
 }
 
-VkPresentModeKHR vk_swapchain_choose_present_mode(/*DARRAY(VkPresentModeKHR)
-                                                      available_present_modes*/) {
+VkPresentModeKHR vk_swapchain_choose_present_mode(
+    /*DARRAY(VkPresentModeKHR)
+        available_present_modes*/
+) {
     /**
      * - VK_PRESENT_MODE_IMMEDIATE_KHR: Images submitted by your application are
      * transferred to the screen right away, which may result in tearing.
