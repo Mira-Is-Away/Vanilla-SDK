@@ -4,3 +4,5 @@ ColumnLimit: 80
 AllowShortFunctionsOnASingleLine: None
 PointerAlignment: Right
 TypenameMacros: ['DARRAY']
+AlignConsecutiveDeclarations: AcrossComments
+AlignConsecutiveAssignments: AcrossComments

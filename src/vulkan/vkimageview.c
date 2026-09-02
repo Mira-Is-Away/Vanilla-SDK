@@ -9,7 +9,7 @@
 #include <vulkan/vulkan.h>
 
 VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
-                               DARRAY(VkImageView) * out_views) {
+                               DARRAY(VkImageView)   *out_views) {
     CLARITY_ASSERT(desc != NULL, "ImageView descriptor cannot be NULL.");
     CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
                    "Logical device cannot be NULL.");
@@ -18,23 +18,23 @@ VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
 
     for (size_t i = 0; i < DARRAY_SIZE(desc->images); i++) {
         VkImageViewCreateInfo create_info = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = NULL,
-            .flags = 0,
-            .image = desc->images[i],
+            .sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext    = NULL,
+            .flags    = 0,
+            .image    = desc->images[i],
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = desc->format,
+            .format   = desc->format,
             .components =
                 (VkComponentMapping){.r = VK_COMPONENT_SWIZZLE_IDENTITY,
                                      .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                                      .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                                      .a = VK_COMPONENT_SWIZZLE_IDENTITY},
             .subresourceRange = (VkImageSubresourceRange){
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel   = 0,
+                .levelCount     = 1,
                 .baseArrayLayer = 0,
-                .layerCount = 1}};
+                .layerCount     = 1}};
 
         VkImageView view;
         if (vkCreateImageView(desc->device, &create_info, NULL, &view) !=

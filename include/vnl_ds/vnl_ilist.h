@@ -29,7 +29,7 @@ typedef struct VnlIListLink {
 typedef struct VnlIList {
     VnlIListLink *head;
     VnlIListLink *tail;
-    u32 count;
+    u32           count;
 } VnlIList;
 
 /**

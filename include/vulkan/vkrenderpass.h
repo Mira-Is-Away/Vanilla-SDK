@@ -10,6 +10,6 @@ typedef struct {
 } VkRenderPassDesc;
 
 VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
-                                VkRenderPass *out_rp);
+                                VkRenderPass           *out_rp);
 
 #endif

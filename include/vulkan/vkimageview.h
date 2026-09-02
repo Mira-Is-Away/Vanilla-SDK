@@ -6,12 +6,12 @@
 #include <vulkan/vulkan.h>
 
 typedef struct {
-    VkDevice device;
+    VkDevice              device;
     const DARRAY(VkImage) images;
-    VkFormat format;
+    VkFormat              format;
 } VkImageViewDesc;
 
 VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
-                               DARRAY(VkImageView) * out_views);
+                               DARRAY(VkImageView)   *out_views);
 
 #endif

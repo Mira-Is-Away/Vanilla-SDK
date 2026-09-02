@@ -17,8 +17,8 @@
 typedef struct VkQueueFamilyIndices {
     bool has_graphics_family;
     bool has_present_family;
-    u32 graphics_family;
-    u32 present_family;
+    u32  graphics_family;
+    u32  present_family;
 } VkQueueFamilyIndices;
 
 /**
@@ -29,6 +29,6 @@ typedef struct VkQueueFamilyIndices {
  * flags.
  */
 VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
-                                            VkSurfaceKHR surface);
+                                            VkSurfaceKHR     surface);
 
 #endif

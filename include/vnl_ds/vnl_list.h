@@ -15,7 +15,7 @@
 
 typedef struct VnlListNode {
     void *data;
-    u32 size;
+    u32   size;
 
     struct VnlListNode *prev;
     struct VnlListNode *next;
@@ -24,7 +24,7 @@ typedef struct VnlListNode {
 typedef struct VnlList {
     VnlListNode *head;
     VnlListNode *tail;
-    u32 size;
+    u32          size;
 } VnlList;
 
 /**
@@ -35,7 +35,7 @@ typedef struct VnlList {
  */
 #define vnl_list_foreach(node_var, list)                                       \
     for (VnlListNode *node_var = (list)->head; node_var != NULL;               \
-         node_var = node_var->next)
+         node_var              = node_var->next)
 
 /**
  * @brief Create a VnlList object and allocates a head node.

@@ -6,13 +6,13 @@
 #include <vulkan/vulkan.h>
 
 typedef struct {
-    VkDevice device;
+    VkDevice            device;
     DARRAY(VkImageView) image_views;
-    VkRenderPass render_pass;
-    VkExtent2D extent;
+    VkRenderPass        render_pass;
+    VkExtent2D          extent;
 } VkFramebufferDesc;
 
 VnlStatus vk_framebuffers_create(const VkFramebufferDesc *desc,
-                                 DARRAY(VkFramebuffer) * out_framebuffers);
+                                 DARRAY(VkFramebuffer)   *out_framebuffers);
 
 #endif

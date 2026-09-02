@@ -7,11 +7,11 @@
 #include <mira/clarity.h>
 
 VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
-                                            VkSurfaceKHR surface) {
+                                            VkSurfaceKHR     surface) {
     VkQueueFamilyIndices indices = {.has_graphics_family = false,
-                                    .has_present_family = false,
-                                    .graphics_family = 0,
-                                    .present_family = 0};
+                                    .has_present_family  = false,
+                                    .graphics_family     = 0,
+                                    .present_family      = 0};
 
     u32 queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, NULL);
@@ -27,7 +27,7 @@ VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
 
     for (u32 i = 0; i < queue_family_count; i++) {
         if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphics_family = i;
+            indices.graphics_family     = i;
             indices.has_graphics_family = true;
         }
 
@@ -35,7 +35,7 @@ VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface,
                                              &present_support);
         if (present_support) {
-            indices.present_family = i;
+            indices.present_family     = i;
             indices.has_present_family = true;
         }
 
