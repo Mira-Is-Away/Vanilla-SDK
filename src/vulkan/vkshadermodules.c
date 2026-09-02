@@ -24,11 +24,11 @@ VnlStatus vk_shader_module_create(VkDevice device, const char *shader_src,
                    "Output shader module pointer cannot be NULL.");
 
     VkShaderModuleCreateInfo create_info = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .pNext = NULL,
-        .flags = 0,
+        .sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext    = NULL,
+        .flags    = 0,
         .codeSize = src_size,
-        .pCode = (const u32 *)shader_src};
+        .pCode    = (const u32 *)shader_src};
 
     VkShaderModule shader_module;
     if (vkCreateShaderModule(device, &create_info, NULL, &shader_module) !=

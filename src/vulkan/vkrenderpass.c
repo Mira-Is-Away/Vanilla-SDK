@@ -7,7 +7,7 @@
 #include <mira/clarity.h>
 
 VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
-                                VkRenderPass *out_rp) {
+                                VkRenderPass           *out_rp) {
     CLARITY_ASSERT(desc != NULL, "Render pass descriptor cannot be NULL.");
     CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
                    "Logical device cannot be NULL.");
@@ -15,13 +15,13 @@ VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
                    "Output render pass pointer cannot be NULL.");
 
     VkAttachmentDescription colour_attachment = (VkAttachmentDescription){
-        .format = desc->format,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .format         = desc->format,
+        .samples        = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+        .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
 
     /**
      * This functionality has been superseded by Vulkan 1.2
@@ -31,23 +31,23 @@ VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
         .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
     VkSubpassDescription subpass = (VkSubpassDescription){
-        .flags = 0,
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .inputAttachmentCount = 0,
-        .pInputAttachments = NULL,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &attach_ref,
-        .pResolveAttachments = NULL,
+        .flags                   = 0,
+        .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount    = 0,
+        .pInputAttachments       = NULL,
+        .colorAttachmentCount    = 1,
+        .pColorAttachments       = &attach_ref,
+        .pResolveAttachments     = NULL,
         .pDepthStencilAttachment = NULL,
         .preserveAttachmentCount = 0,
-        .pPreserveAttachments = NULL};
+        .pPreserveAttachments    = NULL};
 
     VkRenderPassCreateInfo render_pass_info = (VkRenderPassCreateInfo){
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .attachmentCount = 1,
-        .pAttachments = &colour_attachment,
-        .subpassCount = 1,
-        .pSubpasses = &subpass};
+        .pAttachments    = &colour_attachment,
+        .subpassCount    = 1,
+        .pSubpasses      = &subpass};
 
     /**
      * This functionality has been superseded by Vulkan 1.4

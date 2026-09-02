@@ -19,8 +19,8 @@
 
 struct VnlEngine {
     const VnlConfig *config;
-    GLFWwindow *window;
-    VkContext *vkctx;
+    GLFWwindow      *window;
+    VkContext       *vkctx;
 };
 
 static VnlStatus vnl_init_glfw() {

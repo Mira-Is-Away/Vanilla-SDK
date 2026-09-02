@@ -6,18 +6,18 @@
 #include <vulkan/vulkan.h>
 
 typedef struct VkPipelineInstance {
-    VkPipeline pipeline;
+    VkPipeline       pipeline;
     VkPipelineLayout layout;
 } VkPipelineInstance;
 
 typedef struct {
-    VkDevice device;
+    VkDevice     device;
     VkRenderPass render_pass;
-    VkExtent2D extent;
+    VkExtent2D   extent;
 } VkPipelineDesc;
 
 VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
-                             VkPipelineInstance *out_pipeline);
+                             VkPipelineInstance   *out_pipeline);
 
 // void vk_pipeline_destroy();
 

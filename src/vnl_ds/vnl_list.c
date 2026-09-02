@@ -71,8 +71,8 @@ VnlStatus vnl_list_pushfront_default(VnlList *list, const void *data,
         list->tail = list->head;
     } else {
         old_head->prev = node;
-        node->next = old_head;
-        list->head = node;
+        node->next     = old_head;
+        list->head     = node;
     }
 
     list->size++;
@@ -107,8 +107,8 @@ VnlStatus vnl_list_pushback_default(VnlList *list, const void *data, u32 size) {
         list->tail = list->head;
     } else {
         old_tail->next = node;
-        node->prev = old_tail;
-        list->tail = node;
+        node->prev     = old_tail;
+        list->tail     = node;
     }
 
     list->size++;

@@ -9,16 +9,16 @@
 #include <mira/darray.h>
 
 VnlStatus vk_framebuffers_create(const VkFramebufferDesc *desc,
-                                 DARRAY(VkFramebuffer) * out_framebuffers) {
+                                 DARRAY(VkFramebuffer)   *out_framebuffers) {
     DARRAY_FOREACH(VkImageView, image_view, desc->image_views) {
         VkFramebufferCreateInfo framebuffer_info = (VkFramebufferCreateInfo){
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = desc->render_pass,
+            .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .renderPass      = desc->render_pass,
             .attachmentCount = 1,
-            .pAttachments = image_view,
-            .width = desc->extent.width,
-            .height = desc->extent.height,
-            .layers = 1};
+            .pAttachments    = image_view,
+            .width           = desc->extent.width,
+            .height          = desc->extent.height,
+            .layers          = 1};
 
         VkFramebuffer framebuffer;
         if (vkCreateFramebuffer(desc->device, &framebuffer_info, NULL,

@@ -18,8 +18,8 @@
 #include <vulkan/vulkan.h>
 
 typedef struct VkQueueFamilyIndices VkQueueFamilyIndices;
-typedef struct VnlConfig VnlConfig;
-typedef struct VnlContext VnlContext;
+typedef struct VnlConfig            VnlConfig;
+typedef struct VnlContext           VnlContext;
 
 /**
  * @struct VkContext
@@ -34,6 +34,6 @@ typedef struct VkContext VkContext;
  */
 VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
                       VkContext **out_ctx);
-void vulkan_shutdown(VkContext *vkctx);
+void      vulkan_shutdown(VkContext *vkctx);
 
 #endif

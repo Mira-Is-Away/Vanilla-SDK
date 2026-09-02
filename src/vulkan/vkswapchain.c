@@ -9,7 +9,7 @@
 #include <mira/clarity.h>
 
 VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
-                                           VkSurfaceKHR surface) {
+                                           VkSurfaceKHR     surface) {
     VkSwapchainInfo info = {0};
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &info.cap);
@@ -52,8 +52,8 @@ VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
     return info;
 }
 
-VkSurfaceFormatKHR vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR)
-                                                  available_formats) {
+VkSurfaceFormatKHR
+vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats) {
     DARRAY_FOREACH(VkSurfaceFormatKHR, format, available_formats) {
         if (format->format == VK_FORMAT_B8G8R8A8_SRGB &&
             format->colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -127,7 +127,7 @@ static inline u32 _u32_clamp(u32 val, u32 min, u32 max) {
     return val;
 }
 
-VkExtent2D vk_swapchain_extent(GLFWwindow *window,
+VkExtent2D vk_swapchain_extent(GLFWwindow               *window,
                                VkSurfaceCapabilitiesKHR *cap) {
     if (cap->currentExtent.width != UINT32_MAX)
         return cap->currentExtent;
@@ -135,14 +135,14 @@ VkExtent2D vk_swapchain_extent(GLFWwindow *window,
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
 
-    return (VkExtent2D){.width = _u32_clamp((u32)w, cap->minImageExtent.width,
-                                            cap->maxImageExtent.width),
+    return (VkExtent2D){.width  = _u32_clamp((u32)w, cap->minImageExtent.width,
+                                             cap->maxImageExtent.width),
                         .height = _u32_clamp((u32)h, cap->minImageExtent.height,
                                              cap->maxImageExtent.height)};
 }
 
 VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
-                              VkSwapchainInstance *out_sc) {
+                              VkSwapchainInstance   *out_sc) {
     CLARITY_ASSERT(desc != NULL, "Swapchain descriptor cannot be NULL.");
     CLARITY_ASSERT(desc->physical_device != VK_NULL_HANDLE,
                    "Physical device cannot be NULL.");
@@ -171,19 +171,19 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
 
     // Configuring Swapchain creation
     VkSwapchainCreateInfoKHR create_info = {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .surface = desc->surface,
-        .minImageCount = image_count,
-        .imageFormat = surface_format.format,
-        .imageColorSpace = surface_format.colorSpace,
-        .imageExtent = extent,
+        .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .surface          = desc->surface,
+        .minImageCount    = image_count,
+        .imageFormat      = surface_format.format,
+        .imageColorSpace  = surface_format.colorSpace,
+        .imageExtent      = extent,
         .imageArrayLayers = 1,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .preTransform = sc_info.cap.currentTransform,
-        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode = present_mode,
-        .clipped = VK_TRUE,
-        .oldSwapchain = VK_NULL_HANDLE};
+        .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .preTransform     = sc_info.cap.currentTransform,
+        .compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode      = present_mode,
+        .clipped          = VK_TRUE,
+        .oldSwapchain     = VK_NULL_HANDLE};
 
     VkQueueFamilyIndices indices =
         vk_find_queue_families(desc->physical_device, desc->surface);
@@ -192,13 +192,13 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
                                   indices.present_family};
 
     if (indices.graphics_family != indices.present_family) {
-        create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        create_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
         create_info.queueFamilyIndexCount = 2;
-        create_info.pQueueFamilyIndices = queue_family_indices;
+        create_info.pQueueFamilyIndices   = queue_family_indices;
     } else {
-        create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        create_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
         create_info.queueFamilyIndexCount = 0;
-        create_info.pQueueFamilyIndices = NULL;
+        create_info.pQueueFamilyIndices   = NULL;
     }
 
     // Swapchain creation
@@ -210,9 +210,9 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
     }
 
     out_sc->swapchain = sc;
-    out_sc->format = surface_format.format;
-    out_sc->extent = extent;
-    out_sc->images = NULL;
+    out_sc->format    = surface_format.format;
+    out_sc->extent    = extent;
+    out_sc->images    = NULL;
 
     // Retrieving handles for the swapchain images
     vkGetSwapchainImagesKHR(desc->device, sc, &image_count, NULL);

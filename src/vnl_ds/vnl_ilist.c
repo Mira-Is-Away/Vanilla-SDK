@@ -3,8 +3,8 @@
 void vnl_ilist_init(VnlIList *list) {
     if (!list)
         return;
-    list->head = NULL;
-    list->tail = NULL;
+    list->head  = NULL;
+    list->tail  = NULL;
     list->count = 0;
 }
 
