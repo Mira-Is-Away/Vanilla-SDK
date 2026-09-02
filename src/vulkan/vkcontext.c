@@ -40,7 +40,7 @@ typedef struct VkContext {
     VkRenderPass          render_pass;
     DARRAY(VkFramebuffer) framebuffers;
     VkCommandPool command_pool;
-    VkCommandBuffer command_buffer;
+    DARRAY(VkCommandBuffer) command_buffers;
 } VkContext;
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -394,7 +394,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     vkctx->pipeline.layout     = VK_NULL_HANDLE;
     vkctx->framebuffers        = NULL;
     vkctx->command_pool        = VK_NULL_HANDLE;
-    vkctx->command_buffer      = VK_NULL_HANDLE;
+    vkctx->command_buffers     = NULL;
 
     VnlStatus status;
 
@@ -450,18 +450,21 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    VkFramebufferDesc framebuffer_desc = {.device      = vkctx->device,
-                                          .image_views = vkctx->image_views,
-                                          .render_pass = vkctx->render_pass,
-                                          .extent = vkctx->swapchain.extent};
+    VkFramebufferDesc framebuffer_desc = {
+        .device = vkctx->device,
+        .image_views = vkctx->image_views,
+        .render_pass = vkctx->render_pass,
+        .extent = vkctx->swapchain.extent,
+    };
     status = vk_framebuffers_create(&framebuffer_desc, &vkctx->framebuffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    VkCommandPoolDesc command_pool_desc = {.device = vkctx->device,
-                                           .physical_device =
-                                               vkctx->physical_device,
-                                           .surface = vkctx->surface};
+    VkCommandPoolDesc command_pool_desc = {
+        .device = vkctx->device,
+        .physical_device = vkctx->physical_device,
+        .surface = vkctx->surface,
+    };
     status = vk_command_pool_create(&command_pool_desc, &vkctx->command_pool);
     if (status != VNL_SUCCESS)
         goto cleanup;
@@ -469,10 +472,10 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     VkCommandBufferDesc command_buffer_desc = {
         .device = vkctx->device,
         .pool = vkctx->command_pool,
-        .command_buffer_count = 1
+        .command_buffer_count = 1,
     };
-    status =
-        vk_command_buffers_create(&command_buffer_desc, &vkctx->command_buffer);
+    status = vk_command_buffers_create(&command_buffer_desc,
+                                       &vkctx->command_buffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
 

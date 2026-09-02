@@ -3,6 +3,7 @@
 
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
+#include <mira/darray.h>
 #include <vulkan/vulkan.h>
 
 typedef struct {
@@ -12,6 +13,6 @@ typedef struct {
 } VkCommandBufferDesc;
 
 VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
-                                    VkCommandBuffer *out_buffers);
+                                    DARRAY(VkCommandBuffer) * out_buffers);
 
 #endif

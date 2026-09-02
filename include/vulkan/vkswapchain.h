@@ -33,8 +33,10 @@ VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
 VkSurfaceFormatKHR
 vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats);
 
-VkPresentModeKHR vk_swapchain_choose_present_mode(/*DARRAY(VkPresentModeKHR)
-                                                      available_present_modes*/);
+VkPresentModeKHR vk_swapchain_choose_present_mode(
+    /*DARRAY(VkPresentModeKHR)
+        available_present_modes*/
+);
 
 VkExtent2D vk_swapchain_extent(GLFWwindow               *window,
                                VkSurfaceCapabilitiesKHR *cap);
