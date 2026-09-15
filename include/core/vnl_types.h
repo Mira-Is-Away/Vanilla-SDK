@@ -1,3 +1,12 @@
+/**
+ * @file vnl_types.h
+ *
+ * Common type definitions and primitive types used throughout the engine.
+ *
+ * @author Henry R
+ * @date 2026-09-14
+ */
+
 #ifndef VANILLA_CORE_VNL_TYPES_H_
 #define VANILLA_CORE_VNL_TYPES_H_
 
@@ -16,11 +25,19 @@ typedef uint64_t u64;
 typedef float  f32;
 typedef double f64;
 
+/**
+ * @struct VnlVec2
+ * @brief Two-dimensional integer vector.
+ */
 typedef struct VnlVec2 {
     i32 x;
     i32 y;
 } VnlVec2;
 
+/**
+ * @struct VnlColour
+ * @brief RGBA colour structure with normalized floating-point components (0.0f - 1.0f).
+ */
 typedef struct VnlColour {
     f32 r;
     f32 g;
@@ -28,17 +45,29 @@ typedef struct VnlColour {
     f32 a;
 } VnlColour;
 
+/**
+ * @struct VnlWindow
+ * @brief Window dimensions in pixels.
+ */
 typedef struct VnlWindow {
     u16 width;
     u16 height;
 } VnlWindow;
 
+/**
+ * @struct VnlGameVersion
+ * @brief Semantic version structure (major, minor, patch).
+ */
 typedef struct VnlGameVersion {
     u16 major;
     u16 minor;
     u16 patch;
 } VnlGameVersion;
 
+/**
+ * @struct VnlConfig
+ * @brief Configuration settings for initialising the engine.
+ */
 typedef struct VnlConfig {
     VnlWindow      window;
     VnlGameVersion version;

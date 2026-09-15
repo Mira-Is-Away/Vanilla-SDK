@@ -14,6 +14,10 @@
 #include <stdbool.h>
 #include <vulkan/vulkan.h>
 
+/**
+ * @struct VkQueueFamilyIndices
+ * @brief Indices and availability flags for graphics and present queue families.
+ */
 typedef struct VkQueueFamilyIndices {
     bool has_graphics_family;
     bool has_present_family;
@@ -23,10 +27,9 @@ typedef struct VkQueueFamilyIndices {
 
 /**
  * @brief Finds the queue family indices for graphics and present operations.
- * @param device The physical device to query.
- * @param surface The surface to check presentation support against.
- * @return VkQueueFamilyIndices structure with family indices and availability
- * flags.
+ * @param[in] device The physical device to query.
+ * @param[in] surface The surface to check presentation support against.
+ * @return VkQueueFamilyIndices structure with family indices and availability flags.
  */
 VkQueueFamilyIndices vk_find_queue_families(VkPhysicalDevice device,
                                             VkSurfaceKHR     surface);

@@ -27,6 +27,7 @@
 #include <vulkan/vkswapchain.h>
 #include <vulkan/vksync.h>
 #include <vulkan/vulkan.h>
+
 #ifdef MIRA_CLARITY_DEBUG
 static const char *validation_layers[] = {"VK_LAYER_KHRONOS_validation"};
 static const u32   validation_layer_count =
@@ -81,7 +82,8 @@ static VkApplicationInfo vk_context_init_app_info(const VnlConfig *config) {
         .engineVersion =
             VK_MAKE_VERSION(VNL_ENGINE_VERSION_MAJOR, VNL_ENGINE_VERSION_MINOR,
                             VNL_ENGINE_VERSION_PATCH),
-        .apiVersion = VK_API_VERSION_1_0};
+        .apiVersion = VK_API_VERSION_1_4,
+    };
 }
 
 static DARRAY(const char *) vk_get_required_ext() {

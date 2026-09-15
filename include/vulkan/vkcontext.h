@@ -48,12 +48,19 @@ typedef struct VkContext {
 } VkContext;
 
 /**
- * @brief Initialises a Vulkan context instance.
- * @return Returns a pointer to valid VkContext.
- * @retval NULL If context initialisation fails.
+ * @brief Initialises the Vulkan context and creates core Vulkan objects.
+ * @param[in] config The engine configuration settings.
+ * @param[in] window The GLFW window handle to create the surface for.
+ * @param[out] out_ctx Pointer to store the created VkContext.
+ * @retval VNL_SUCCESS If context initialisation was successful.
  */
 VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
                       VkContext **out_ctx);
-void      vulkan_shutdown(VkContext *vkctx);
+
+/**
+ * @brief Shuts down the Vulkan context and destroys all associated Vulkan objects.
+ * @param[in] vkctx The Vulkan context to destroy.
+ */
+void vulkan_shutdown(VkContext *vkctx);
 
 #endif
