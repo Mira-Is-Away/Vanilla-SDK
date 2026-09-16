@@ -46,7 +46,7 @@ typedef struct VkContext {
     DARRAY(VkFramebuffer)   framebuffers;
     VkCommandPool           command_pool;
     DARRAY(VkCommandBuffer) command_buffers;
-    VkSync                  sync[VNL_MAX_FRAMES_IN_FLIGHT];
+    VkSync                  sync;
     u32                     current_frame;
 } VkContext;
 
