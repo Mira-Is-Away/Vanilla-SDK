@@ -1,4 +1,4 @@
-#include <vulkan/vkcommandbuffers.h>
+#include <renderer/vulkan/vkcommandbuffers.h>
 
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
@@ -7,7 +7,7 @@
 #endif
 #include <mira/clarity.h>
 #include <mira/darray.h>
-#include <vulkan/vkrenderpass.h>
+#include <renderer/vulkan/vkrenderpass.h>
 #include <vulkan/vulkan.h>
 
 VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,

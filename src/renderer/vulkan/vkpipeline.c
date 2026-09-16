@@ -1,4 +1,4 @@
-#include <vulkan/vkpipeline.h>
+#include <renderer/vulkan/vkpipeline.h>
 
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
@@ -7,8 +7,8 @@
 #endif
 #include <mira/clarity.h>
 #include <mira/darray.h>
-#include <vulkan/vkshadermodules.h>
-#include <vulkan/vkswapchain.h>
+#include <renderer/vulkan/vkshadermodules.h>
+#include <renderer/vulkan/vkswapchain.h>
 
 static VkPipelineDynamicStateCreateInfo _create_dynamic_pipeline_state() {
     DARRAY(VkDynamicState) dynamic_state_list = NULL;

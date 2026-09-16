@@ -11,7 +11,7 @@
 #define VNL_VULKAN_VKPIPELINE_H_
 
 #include <core/vnl_status.h>
-#include <vulkan/vkswapchain.h>
+#include <renderer/vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>
 
 /**
