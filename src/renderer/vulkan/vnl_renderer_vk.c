@@ -19,9 +19,9 @@
 
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
-#include <vulkan/vkcommandbuffers.h>
-#include <vulkan/vkcontext.h>
-#include <vulkan/vksync.h>
+#include <renderer/vulkan/vkcommandbuffers.h>
+#include <renderer/vulkan/vkcontext.h>
+#include <renderer/vulkan/vksync.h>
 #include <vulkan/vulkan.h>
 
 struct VnlRenderer {

@@ -15,13 +15,18 @@
 #include <vulkan/vulkan.h>
 
 #include <mira/darray.h>
-#include <vulkan/vkpipeline.h>
-#include <vulkan/vkswapchain.h>
-#include <vulkan/vksync.h>
+#include <renderer/vulkan/vkcommandbuffers.h>
+#include <renderer/vulkan/vkcommandpool.h>
+#include <renderer/vulkan/vkframebuffer.h>
+#include <renderer/vulkan/vkimageview.h>
+#include <renderer/vulkan/vkpipeline.h>
+#include <renderer/vulkan/vkqueue.h>
+#include <renderer/vulkan/vkrenderpass.h>
+#include <renderer/vulkan/vkswapchain.h>
+#include <renderer/vulkan/vksync.h>
 
-typedef struct VkQueueFamilyIndices VkQueueFamilyIndices;
-typedef struct VnlConfig            VnlConfig;
-typedef struct VnlWinMan            VnlWinMan;
+typedef struct VnlConfig VnlConfig;
+typedef struct VnlWinMan VnlWinMan;
 
 /**
  * @struct VkContext

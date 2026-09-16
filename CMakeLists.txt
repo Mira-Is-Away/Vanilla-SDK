@@ -96,17 +96,17 @@ add_library(vanilla SHARED
     src/winman/winman.c
     src/core/vanilla.c
     src/renderer/vulkan/vnl_renderer_vk.c
-    src/vulkan/vkcontext.c
-    src/vulkan/vkqueue.c
-    src/vulkan/vkswapchain.c
-    src/vulkan/vkimageview.c
-    src/vulkan/vkrenderpass.c
-    src/vulkan/vkshadermodules.c
-    src/vulkan/vkpipeline.c
-    src/vulkan/vkframebuffer.c
-    src/vulkan/vkcommandpool.c
-    src/vulkan/vkcommandbuffers.c
-    src/vulkan/vksync.c
+    src/renderer/vulkan/vkcontext.c
+    src/renderer/vulkan/vkqueue.c
+    src/renderer/vulkan/vkswapchain.c
+    src/renderer/vulkan/vkimageview.c
+    src/renderer/vulkan/vkrenderpass.c
+    src/renderer/vulkan/vkshadermodules.c
+    src/renderer/vulkan/vkpipeline.c
+    src/renderer/vulkan/vkframebuffer.c
+    src/renderer/vulkan/vkcommandpool.c
+    src/renderer/vulkan/vkcommandbuffers.c
+    src/renderer/vulkan/vksync.c
     src/vnl_ds/vnl_ilist.c
     src/vnl_ds/vnl_list.c
 )
