@@ -77,22 +77,26 @@ set(SPIRV_BIN_FILES "")
 foreach(SHADER_SRC ${SHADER_SOURCES})
     get_filename_component(FILE_NAME ${SHADER_SRC} NAME)
     set(SPIRV_OUT "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv")
+    set(SPIRV_HEADER "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv.h")
 
     add_custom_command(
-        OUTPUT ${SPIRV_OUT}
+        OUTPUT ${SPIRV_OUT} ${SPIRV_HEADER}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders"
         COMMAND ${GLSLC_EXE} ${SHADER_SRC} -o ${SPIRV_OUT}
+        COMMAND ${GLSLC_EXE} -mfmt=c ${SHADER_SRC} -o ${SPIRV_HEADER}
         DEPENDS ${SHADER_SRC}
-        COMMENT "Compiling shader ${FILE_NAME} -> ${FILE_NAME}.spv"
+        COMMENT "Compiling shader ${FILE_NAME} -> .spv and C header"
         VERBATIM
     )
 
-    list(APPEND SPIRV_BIN_FILES ${SPIRV_OUT})
+    list(APPEND SPIRV_BIN_FILES ${SPIRV_OUT} ${SPIRV_HEADER})
 endforeach()
 
 add_custom_target(CompileShaders DEPENDS ${SPIRV_BIN_FILES})
 
-add_library(vanilla SHARED
+option(BUILD_SHARED_LIBS "Build Vanilla as a shared library rather than static" ON)
+
+add_library(vanilla
     src/winman/winman.c
     src/core/vanilla.c
     src/renderer/vulkan/vnl_renderer_vk.c
@@ -122,7 +126,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}/shaders
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
     glfw
     mira_clarity
     mira_darray
@@ -133,11 +141,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-target_compile_definitions(${PROJECT_NAME}
-    PRIVATE     VNL_BUILD_SHARED
-                SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders/"
-    INTERFACE   VNL_USE_SHARED
-)
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE     VNL_BUILD_SHARED
+        INTERFACE   VNL_USE_SHARED
+    )
+endif()
 
 option(VANILLA_BUILD_TESTS "Build the testing suite" ON)
 if(VANILLA_BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")

@@ -62,7 +62,7 @@ char *vk_shader_read(const char *filename, size_t *out_size) {
         return NULL;
     }
 
-    char *buffer = (char *)malloc(fsize);
+    char *buffer = (char *)CLARITY_MALLOC(fsize);
     if (!buffer) {
         fclose(f);
         return NULL;

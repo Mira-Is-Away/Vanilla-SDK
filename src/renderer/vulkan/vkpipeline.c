@@ -32,24 +32,23 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
     CLARITY_ASSERT(out_pipeline != NULL,
                    "Output pipeline layout pointer cannot be NULL.");
 
-    size_t      vert_s, frag_s;
-    const char *vert = vk_shader_read("vertex.vert.spv", &vert_s);
-    const char *frag = vk_shader_read("fragment.frag.spv", &frag_s);
+    static const uint32_t vert_spv[] =
+#include "vertex.vert.spv.h"
+        ;
 
-    if (!vert || !frag) {
-        CLARITY_LOG_ERROR("Failed to fetch shader bytecode.");
-        return VNL_ERROR_SHADER_CREATION_FAILED;
-    }
+    static const uint32_t frag_spv[] =
+#include "fragment.frag.spv.h"
+        ;
 
     VkShaderModule vert_m, frag_m;
-    if (vk_shader_module_create(desc->device, vert, vert_s, &vert_m) !=
-        VNL_SUCCESS) {
+    if (vk_shader_module_create(desc->device, (const char *)vert_spv,
+                                sizeof(vert_spv), &vert_m) != VNL_SUCCESS) {
         CLARITY_LOG_ERROR("Failed to create vertex shader module.");
         return VNL_ERROR_SHADER_CREATION_FAILED;
     }
 
-    if (vk_shader_module_create(desc->device, frag, frag_s, &frag_m) !=
-        VNL_SUCCESS) {
+    if (vk_shader_module_create(desc->device, (const char *)frag_spv,
+                                sizeof(frag_spv), &frag_m) != VNL_SUCCESS) {
         CLARITY_LOG_ERROR("Failed to create fragment shader module.");
         return VNL_ERROR_SHADER_CREATION_FAILED;
     }
