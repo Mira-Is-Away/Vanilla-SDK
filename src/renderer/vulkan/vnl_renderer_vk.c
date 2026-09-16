@@ -61,17 +61,17 @@ VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
     u32        current_frame = vkctx->current_frame;
     u32        image_index   = 0;
 
-    vk_wait_in_flight(&vkctx->sync[current_frame]);
+    vk_wait_in_flight(&vkctx->sync, current_frame);
 
     if (vkAcquireNextImageKHR(vkctx->device, vkctx->swapchain.swapchain,
                               UINT64_MAX,
-                              vkctx->sync[current_frame].image_available,
+                              vkctx->sync.frames[current_frame].image_available,
                               VK_NULL_HANDLE, &image_index)) {
         CLARITY_LOG_ERROR("Failed to acquire next swapchain image.");
         return VNL_FAILURE;
     }
 
-    vk_reset_in_flight(&vkctx->sync[current_frame]);
+    vk_reset_in_flight(&vkctx->sync, current_frame);
 
     vk_command_buffer_reset(vkctx->command_buffers[current_frame]);
 
@@ -92,11 +92,11 @@ VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
     }
 
     VkSemaphore wait_semaphores[] = {
-        vkctx->sync[current_frame].image_available};
+        vkctx->sync.frames[current_frame].image_available};
     VkPipelineStageFlags wait_stages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     VkSemaphore signal_semaphores[] = {
-        vkctx->sync[current_frame].render_finished};
+        vkctx->sync.render_finished[image_index]};
 
     VkSubmitInfo submit_info = {
         .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -110,7 +110,8 @@ VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
     };
 
     if (vkQueueSubmit(vkctx->graphics_queue, 1, &submit_info,
-                      vkctx->sync[current_frame].in_flight) != VK_SUCCESS) {
+                      vkctx->sync.frames[current_frame].in_flight) !=
+        VK_SUCCESS) {
         CLARITY_LOG_ERROR(
             "Failed to submit draw command buffer to graphics queue.");
         return VNL_FAILURE;

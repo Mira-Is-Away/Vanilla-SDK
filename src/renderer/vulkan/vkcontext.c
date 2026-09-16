@@ -383,12 +383,7 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     vkctx->framebuffers        = NULL;
     vkctx->command_pool        = VK_NULL_HANDLE;
     vkctx->command_buffers     = NULL;
-    for (u32 i = 0; i < VNL_MAX_FRAMES_IN_FLIGHT; i++) {
-        vkctx->sync[i].device          = VK_NULL_HANDLE;
-        vkctx->sync[i].image_available = VK_NULL_HANDLE;
-        vkctx->sync[i].render_finished = VK_NULL_HANDLE;
-        vkctx->sync[i].in_flight       = VK_NULL_HANDLE;
-    }
+    memset(&vkctx->sync, 0, sizeof(VkSync));
     vkctx->current_frame = 0;
 
     VnlStatus status;
@@ -478,13 +473,12 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
                    "command_buffers is NULL.");
 
     VkSyncDesc sync_desc = {
-        .device = vkctx->device,
+        .device                = vkctx->device,
+        .swapchain_image_count = (u32)DARRAY_SIZE(vkctx->swapchain.images),
     };
-    for (u32 i = 0; i < VNL_MAX_FRAMES_IN_FLIGHT; i++) {
-        status = vk_sync_create(&sync_desc, &vkctx->sync[i]);
-        if (status != VNL_SUCCESS)
-            goto cleanup;
-    }
+    status = vk_sync_create(&sync_desc, &vkctx->sync);
+    if (status != VNL_SUCCESS)
+        goto cleanup;
 
     *out_ctx = vkctx;
     return VNL_SUCCESS;
@@ -497,15 +491,7 @@ cleanup:
 
 void vulkan_shutdown(VkContext *vkctx) {
     if (vkctx) {
-        for (u32 i = 0; i < VNL_MAX_FRAMES_IN_FLIGHT; i++) {
-            if (vkctx->sync[i].device != VK_NULL_HANDLE) {
-                vk_sync_destroy(vkctx->sync[i]);
-                vkctx->sync[i].device          = VK_NULL_HANDLE;
-                vkctx->sync[i].image_available = VK_NULL_HANDLE;
-                vkctx->sync[i].render_finished = VK_NULL_HANDLE;
-                vkctx->sync[i].in_flight       = VK_NULL_HANDLE;
-            }
-        }
+        vk_sync_destroy(&vkctx->sync);
         if (vkctx->command_buffers != NULL) {
             DARRAY_FREE(vkctx->command_buffers);
         }
