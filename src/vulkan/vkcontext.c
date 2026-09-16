@@ -1,6 +1,5 @@
 #include "vulkan/vkcontext.h"
 
-#include <GLFW/glfw3.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -27,6 +26,8 @@
 #include <vulkan/vkswapchain.h>
 #include <vulkan/vksync.h>
 #include <vulkan/vulkan.h>
+#include <winman/winman.h>
+
 #ifdef MIRA_CLARITY_DEBUG
 static const char *validation_layers[] = {"VK_LAYER_KHRONOS_validation"};
 static const u32   validation_layer_count =
@@ -81,13 +82,14 @@ static VkApplicationInfo vk_context_init_app_info(const VnlConfig *config) {
         .engineVersion =
             VK_MAKE_VERSION(VNL_ENGINE_VERSION_MAJOR, VNL_ENGINE_VERSION_MINOR,
                             VNL_ENGINE_VERSION_PATCH),
-        .apiVersion = VK_API_VERSION_1_0};
+        .apiVersion = VK_API_VERSION_1_4,
+    };
 }
 
 static DARRAY(const char *) vk_get_required_ext() {
     u32          ext_count = 0;
     const char **req_glfw_ext;
-    req_glfw_ext = glfwGetRequiredInstanceExtensions(&ext_count);
+    req_glfw_ext = vnl_winman_get_required_extensions(&ext_count);
 
     DARRAY(const char *) req_ext = NULL;
 
@@ -322,14 +324,12 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     return VNL_SUCCESS;
 }
 
-static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
+static VnlStatus vk_create_surface(VkContext *vkctx, VnlWinMan *winman) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
-    CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
+    CLARITY_ASSERT(winman != NULL, "Window manager cannot be NULL.");
 
-    VkResult result =
-        glfwCreateWindowSurface(vkctx->instance, window, NULL, &vkctx->surface);
-
-    if (result != VK_SUCCESS) {
+    if (vnl_winman_create_vulkan_surface(winman, vkctx->instance, NULL,
+                                         &vkctx->surface) != VNL_SUCCESS) {
         CLARITY_LOG_WARN("Failed to create Vulkan window surface.");
         return VNL_ERROR_SURFACE_CREATION_FAILED;
     }
@@ -337,10 +337,10 @@ static VnlStatus vk_create_surface(VkContext *vkctx, GLFWwindow *window) {
     return VNL_SUCCESS;
 }
 
-VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
+VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
                       VkContext **out_ctx) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
-    CLARITY_ASSERT(window != NULL, "GLFW Window cannot be NULL.");
+    CLARITY_ASSERT(winman != NULL, "Window manager cannot be NULL.");
     CLARITY_ASSERT(out_ctx != NULL, "out_ctx pointer cannot be NULL.");
 
     VkContext *vkctx = CLARITY_MALLOC(sizeof(VkContext));
@@ -397,7 +397,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    status = vk_create_surface(vkctx, window);
+    status = vk_create_surface(vkctx, winman);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -413,7 +413,7 @@ VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
         .physical_device = vkctx->physical_device,
         .device          = vkctx->device,
         .surface         = vkctx->surface,
-        .window          = window,
+        .winman          = winman,
     };
     status = vk_swapchain_create(&swapchain_desc, &vkctx->swapchain);
     if (status != VNL_SUCCESS)

@@ -60,10 +60,15 @@
  * config.window = VNL_MAKE_WINDOW_SIZE(1, 0, 0);
  */
 #define VNL_MAKE_WINDOW_SIZE(width, height)                                    \
-    (VnlWindow) {                                                              \
+    (VnlWindowConfig) {                                                        \
         width, height                                                          \
     }
 
+/** @brief Helper macro to format RGB colour values into a VnlColour struct
+ *
+ * Usage:
+ * config.clear_colour = VNL_MAKE_COLOUR(255, 255, 255);
+ */
 #define VNL_MAKE_COLOUR(r, g, b)                                               \
     (VnlColour){(float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0f}
 

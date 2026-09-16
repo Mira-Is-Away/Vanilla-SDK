@@ -1,8 +1,8 @@
 #include <vulkan/vkswapchain.h>
 
-#include <GLFW/glfw3.h>
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
+#include <winman/winman.h>
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG
 #endif
@@ -129,14 +129,14 @@ static inline u32 _u32_clamp(u32 val, u32 min, u32 max) {
     return val;
 }
 
-VkExtent2D vk_swapchain_extent(GLFWwindow               *window,
+VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
                                VkSurfaceCapabilitiesKHR *cap) {
 
     if (cap->currentExtent.width != UINT32_MAX)
         return cap->currentExtent;
 
     int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
+    vnl_winman_get_framebuffer_size(winman, &w, &h);
 
     return (VkExtent2D){.width  = _u32_clamp((u32)w, cap->minImageExtent.width,
                                              cap->maxImageExtent.width),
@@ -152,7 +152,7 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
     CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
                    "Logical device cannot be NULL.");
     CLARITY_ASSERT(desc->surface != VK_NULL_HANDLE, "Surface cannot be NULL.");
-    CLARITY_ASSERT(desc->window != NULL, "GLFW Window cannot be NULL.");
+    CLARITY_ASSERT(desc->winman != NULL, "Window manager cannot be NULL.");
     CLARITY_ASSERT(out_sc != NULL, "Output swapchain pointer cannot be NULL.");
 
     // Fetching information about the swapchain capabilities
@@ -164,7 +164,7 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
     VkPresentModeKHR present_mode =
         vk_swapchain_choose_present_mode(/*sc_info.present_modes*/);
 
-    VkExtent2D extent = vk_swapchain_extent(desc->window, &sc_info.cap);
+    VkExtent2D extent = vk_swapchain_extent(desc->winman, &sc_info.cap);
 
     u32 image_count = sc_info.cap.minImageCount + 1;
 

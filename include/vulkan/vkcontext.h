@@ -11,9 +11,6 @@
 #ifndef VANILLA_VULKAN_VKCONTEXT_H_
 #define VANILLA_VULKAN_VKCONTEXT_H_
 
-#define GLFW_INCLUDE_VULKAN
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <core/vnl_status.h>
 #include <vulkan/vulkan.h>
 
@@ -24,6 +21,7 @@
 
 typedef struct VkQueueFamilyIndices VkQueueFamilyIndices;
 typedef struct VnlConfig            VnlConfig;
+typedef struct VnlWinMan            VnlWinMan;
 
 /**
  * @struct VkContext
@@ -48,12 +46,21 @@ typedef struct VkContext {
 } VkContext;
 
 /**
- * @brief Initialises a Vulkan context instance.
- * @return Returns a pointer to valid VkContext.
- * @retval NULL If context initialisation fails.
+ * @brief Initialises the Vulkan context and creates core Vulkan objects.
+ * @param[in] config The engine configuration settings.
+ * @param[in] winman The window manager handle to create the surface and
+ * swapchain from.
+ * @param[out] out_ctx Pointer to store the created VkContext.
+ * @retval VNL_SUCCESS If context initialisation was successful.
  */
-VnlStatus vulkan_init(const VnlConfig *config, GLFWwindow *window,
+VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
                       VkContext **out_ctx);
-void      vulkan_shutdown(VkContext *vkctx);
+
+/**
+ * @brief Shuts down the Vulkan context and destroys all associated Vulkan
+ * objects.
+ * @param[in] vkctx The Vulkan context to destroy.
+ */
+void vulkan_shutdown(VkContext *vkctx);
 
 #endif

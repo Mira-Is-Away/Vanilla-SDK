@@ -93,7 +93,7 @@ endforeach()
 add_custom_target(CompileShaders DEPENDS ${SPIRV_BIN_FILES})
 
 add_library(vanilla SHARED
-    src/glfw/window.c
+    src/winman/winman.c
     src/core/vanilla.c
     src/renderer/vulkan/vnl_renderer_vk.c
     src/vulkan/vkcontext.c

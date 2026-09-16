@@ -10,6 +10,10 @@
 #ifndef VANILLA_CORE_VNL_STATUS_H_
 #define VANILLA_CORE_VNL_STATUS_H_
 
+/**
+ * @enum VnlStatus
+ * @brief Status and error codes returned by engine functions.
+ */
 typedef enum VnlStatus {
     VNL_SUCCESS                                     = 0,
     VNL_FAILURE                                     = 1,

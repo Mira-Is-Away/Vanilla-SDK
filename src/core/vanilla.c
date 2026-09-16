@@ -1,6 +1,5 @@
 #include <mira/vanilla.h>
 
-#include <GLFW/glfw3.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,25 +12,15 @@
 #include <mira/clarity.h>
 #define MIRA_DARRAY_IMPL
 #include <core/vnl_types.h>
-#include <glfw/window.h>
 #include <mira/darray.h>
 #include <renderer/vnl_renderer.h>
+#include <winman/winman.h>
 
 struct VnlEngine {
     const VnlConfig *config;
-    GLFWwindow      *window;
+    VnlWinMan       *winman;
     VnlRenderer     *renderer;
 };
-
-static VnlStatus vnl_init_glfw() {
-    bool glfw_status = glfwInit();
-
-    if (!glfw_status) {
-        return VNL_ERROR_GLFW_INIT_FAILED;
-    }
-
-    return VNL_SUCCESS;
-}
 
 VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
@@ -39,25 +28,23 @@ VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
 
     VnlStatus status;
 
-    status = vnl_init_glfw();
-    if (status != VNL_SUCCESS)
-        return status;
-
     VnlEngine *engine = CLARITY_MALLOC(sizeof(VnlEngine));
-    if (!engine)
+    if (!engine) {
+        CLARITY_LOG_ERROR("Vanilla has run out of available memory!");
         return VNL_ERROR_OUT_OF_MEMORY;
+    }
 
     engine->config = config;
 
-    status = vnl_window_create(config, &engine->window);
+    status = vnl_winman_init(config, &engine->winman);
     if (status != VNL_SUCCESS) {
         CLARITY_FREE(engine);
         return status;
     }
 
-    status = vnl_renderer_init(config, engine->window, &engine->renderer);
+    status = vnl_renderer_init(config, engine->winman, &engine->renderer);
     if (status != VNL_SUCCESS) {
-        vnl_window_destroy(engine->window);
+        vnl_winman_shutdown(engine->winman);
         CLARITY_FREE(engine);
         return status;
     }
@@ -67,15 +54,15 @@ VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
 }
 
 void vnl_run(VnlEngine *engine) {
-    CLARITY_ASSERT(engine != NULL, "Engine pointer is NULL.");
-    CLARITY_ASSERT(engine->window != NULL, "Engine window pointer is NULL.");
-    CLARITY_ASSERT(engine->renderer != NULL,
-                   "Engine renderer pointer is NULL.");
-    if (!engine || !engine->window || !engine->renderer)
+    CLARITY_ASSERT(engine != NULL, "Engine handle is NULL.");
+    CLARITY_ASSERT(engine->winman != NULL,
+                   "Engine window manager handle is NULL.");
+    CLARITY_ASSERT(engine->renderer != NULL, "Engine renderer handle is NULL.");
+    if (!engine || !engine->winman || !engine->renderer)
         return;
 
-    while (!glfwWindowShouldClose(engine->window)) {
-        glfwPollEvents();
+    while (!vnl_winman_should_close(engine->winman)) {
+        vnl_winman_poll_events(engine->winman);
         vnl_renderer_draw(engine->renderer);
     }
 }
@@ -85,8 +72,7 @@ void vnl_shutdown(VnlEngine *engine) {
         return;
 
     vnl_renderer_shutdown(engine->renderer);
-    vnl_window_destroy(engine->window);
-    glfwTerminate();
+    vnl_winman_shutdown(engine->winman);
     CLARITY_FREE(engine);
 
     CLARITY_MEM_REPORT();
