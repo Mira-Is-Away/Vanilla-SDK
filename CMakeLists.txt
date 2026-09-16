@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(vanilla-sdk LANGUAGES C)
+project(vanilla LANGUAGES C)
 
 set(VANILLA_SDK_VERSION "1.0.0-beta.14")
 
@@ -111,18 +111,18 @@ add_library(vanilla SHARED
     src/vnl_ds/vnl_list.c
 )
 
-add_dependencies(vanilla Format CompileShaders)
+add_dependencies(${PROJECT_NAME} Format CompileShaders)
 
-set_target_properties(vanilla PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
-    OUTPUT_NAME "vanilla"
+    OUTPUT_NAME "${PROJECT_NAME}"
 )
 
-target_include_directories(vanilla PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_link_libraries(vanilla PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
     glfw
     mira_clarity
     mira_darray
@@ -131,37 +131,27 @@ target_link_libraries(vanilla PUBLIC
     ${CMAKE_DL_LIBS}
 )
 
-target_compile_definitions(vanilla PRIVATE 
-    VNL_BUILD_SHARED
-    SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders/"
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE     VNL_BUILD_SHARED
+                SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders/"
+    INTERFACE   VNL_USE_SHARED
 )
 
-add_executable(${PROJECT_NAME} main.c)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    vanilla
-)
+option(VANILLA_BUILD_TESTS "Build the testing suite" ON)
+if(VANILLA_BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")
+    add_subdirectory(tests)
+endif()
 
 if(MSVC)
-    target_compile_definitions(vanilla PRIVATE _CRT_SECURE_NO_WARNINGS)
-    target_compile_options(vanilla PRIVATE
-        $<$<CONFIG:Debug>:/W4 /Zi /Od /utf-8 /permissive->
-        $<$<CONFIG:Release>:/O2 /DNDEBUG>
-        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
-    )
-    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS VNL_USE_SHARED)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:/W4 /Zi /Od /utf-8 /permissive->
         $<$<CONFIG:Release>:/O2 /DNDEBUG>
         $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
     )
 else()
-    target_compile_options(vanilla PRIVATE
-        $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic -Werror>
-        $<$<CONFIG:Release>:-O3 -DNDEBUG>
-        $<$<CONFIG:RelWithDebInfo>: -O2 -g>
-        $<$<CONFIG:MinSizeRel>:-Os -DNDEBUG>
-    )
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic -Werror>
         $<$<CONFIG:Release>:-O3 -DNDEBUG>

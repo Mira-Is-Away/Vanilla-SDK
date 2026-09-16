@@ -2,6 +2,9 @@
 /build
 /build-*
 
+# Test files directory
+/tests
+
 # Visual Studio Clutter
 *.sdf
 *.suo
