@@ -10,7 +10,7 @@
 #ifndef VNL_VULKAN_VKCOMMANDPOOL_H_
 #define VNL_VULKAN_VKCOMMANDPOOL_H_
 
-#include <core/vnl_status.h>
+#include <mira/vnl_status.h>
 #include <vulkan/vulkan.h>
 
 /**

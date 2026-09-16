@@ -10,7 +10,7 @@
 #ifndef VANILLA_VULKAN_VKQUEUE_H_
 #define VANILLA_VULKAN_VKQUEUE_H_
 
-#include "core/vnl_types.h"
+#include "mira/vnl_types.h"
 #include <stdbool.h>
 #include <vulkan/vulkan.h>
 

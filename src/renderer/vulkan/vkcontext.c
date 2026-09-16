@@ -12,9 +12,9 @@
 #include <mira/clarity.h>
 #include <mira/darray.h>
 
-#include <core/vnl_macros.h>
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_macros.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <renderer/vulkan/vkcommandbuffers.h>
 #include <renderer/vulkan/vkcommandpool.h>
 #include <renderer/vulkan/vkframebuffer.h>

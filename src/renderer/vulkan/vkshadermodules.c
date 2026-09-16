@@ -3,9 +3,9 @@
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG
 #endif
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
 #include <mira/clarity.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,7 +1,7 @@
 #include <renderer/vulkan/vkcommandbuffers.h>
 
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG
 #endif

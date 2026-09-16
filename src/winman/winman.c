@@ -6,7 +6,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_types.h>
 
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG
