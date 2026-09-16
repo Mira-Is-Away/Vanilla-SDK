@@ -1,8 +1,8 @@
-#include <vulkan/vkcommandpool.h>
+#include <renderer/vulkan/vkcommandpool.h>
 
 #include <core/vnl_status.h>
 #include <mira/clarity.h>
-#include <vulkan/vkqueue.h>
+#include <renderer/vulkan/vkqueue.h>
 
 VnlStatus vk_command_pool_create(const VkCommandPoolDesc *desc,
                                  VkCommandPool           *out_command_pool) {

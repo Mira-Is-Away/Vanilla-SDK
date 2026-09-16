@@ -13,7 +13,7 @@
 
 #include <core/vnl_status.h>
 #include <mira/darray.h>
-#include <vulkan/vkqueue.h>
+#include <renderer/vulkan/vkqueue.h>
 #include <vulkan/vulkan.h>
 
 typedef struct VnlWinMan VnlWinMan;

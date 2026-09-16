@@ -1,4 +1,4 @@
-#include "vulkan/vkcontext.h"
+#include <renderer/vulkan/vkcontext.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -15,16 +15,16 @@
 #include <core/vnl_macros.h>
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
+#include <renderer/vulkan/vkcommandbuffers.h>
+#include <renderer/vulkan/vkcommandpool.h>
+#include <renderer/vulkan/vkframebuffer.h>
+#include <renderer/vulkan/vkimageview.h>
+#include <renderer/vulkan/vkpipeline.h>
+#include <renderer/vulkan/vkqueue.h>
+#include <renderer/vulkan/vkrenderpass.h>
+#include <renderer/vulkan/vkswapchain.h>
+#include <renderer/vulkan/vksync.h>
 #include <vnl_ds/vnl_list.h>
-#include <vulkan/vkcommandbuffers.h>
-#include <vulkan/vkcommandpool.h>
-#include <vulkan/vkframebuffer.h>
-#include <vulkan/vkimageview.h>
-#include <vulkan/vkpipeline.h>
-#include <vulkan/vkqueue.h>
-#include <vulkan/vkrenderpass.h>
-#include <vulkan/vkswapchain.h>
-#include <vulkan/vksync.h>
 #include <vulkan/vulkan.h>
 #include <winman/winman.h>
 
