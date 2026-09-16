@@ -29,7 +29,8 @@ typedef struct {
 /**
  * @brief Allocates command buffers from the specified command pool.
  * @param[in] desc Pointer to the command buffer allocation descriptor.
- * @param[out] out_buffers Pointer to a dynamic array to store the allocated command buffers.
+ * @param[out] out_buffers Pointer to a dynamic array to store the allocated
+ * command buffers.
  * @retval VNL_SUCCESS If command buffer allocation was successful.
  * @retval VNL_ERROR_COMMAND_BUFFER_CREATION_FAILED If allocation failed.
  */
@@ -38,7 +39,8 @@ VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
 
 /**
  * @struct VkCommandBufferRecordDesc
- * @brief Descriptor containing parameters for recording drawing commands into a command buffer.
+ * @brief Descriptor containing parameters for recording drawing commands into a
+ * command buffer.
  */
 typedef struct {
     VkCommandBuffer       command_buffer;
@@ -52,11 +54,14 @@ typedef struct {
 } VkCommandBufferRecordDesc;
 
 /**
- * @brief Records standard render pass and drawing commands into a command buffer.
+ * @brief Records standard render pass and drawing commands into a command
+ * buffer.
  * @param[in] desc Pointer to the command buffer recording descriptor.
  * @retval VNL_SUCCESS If recording was successful.
- * @retval VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED If starting the command buffer failed.
- * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If finishing the command buffer failed.
+ * @retval VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED If starting the
+ * command buffer failed.
+ * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If finishing the
+ * command buffer failed.
  */
 VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc);
 

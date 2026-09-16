@@ -38,8 +38,10 @@ typedef struct {
  * @param[in] desc Pointer to the pipeline descriptor.
  * @param[out] out_pipeline Pointer to store the created pipeline instance.
  * @retval VNL_SUCCESS If pipeline creation was successful.
- * @retval VNL_ERROR_SHADER_CREATION_FAILED If loading or creating shader modules failed.
- * @retval VNL_ERROR_PIPELINE_CREATION_FAILED If pipeline or pipeline layout creation failed.
+ * @retval VNL_ERROR_SHADER_CREATION_FAILED If loading or creating shader
+ * modules failed.
+ * @retval VNL_ERROR_PIPELINE_CREATION_FAILED If pipeline or pipeline layout
+ * creation failed.
  */
 VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
                              VkPipelineInstance   *out_pipeline);

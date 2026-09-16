@@ -60,7 +60,7 @@
  * config.window = VNL_MAKE_WINDOW_SIZE(1, 0, 0);
  */
 #define VNL_MAKE_WINDOW_SIZE(width, height)                                    \
-    (VnlWindow) {                                                              \
+    (VnlWindowConfig) {                                                        \
         width, height                                                          \
     }
 

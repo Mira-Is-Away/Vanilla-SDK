@@ -36,7 +36,8 @@ VnlStatus vk_render_pass_create(const VkRenderPassDesc *desc,
 
 /**
  * @struct VkRenderPassBeginDesc
- * @brief Descriptor containing parameters for beginning a render pass execution.
+ * @brief Descriptor containing parameters for beginning a render pass
+ * execution.
  */
 typedef struct {
     VkCommandBuffer       command_buffer;

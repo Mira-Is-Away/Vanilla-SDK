@@ -39,7 +39,8 @@ typedef struct {
 } VkSyncDesc;
 
 /**
- * @brief Creates synchronization objects (semaphores and fence) for frame rendering.
+ * @brief Creates synchronization objects (semaphores and fence) for frame
+ * rendering.
  * @param[in] desc Pointer to the synchronization descriptor.
  * @param[out] out_sync Pointer to store the created synchronization primitives.
  * @retval VNL_SUCCESS If synchronization objects were created successfully.

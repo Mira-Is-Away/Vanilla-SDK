@@ -29,10 +29,10 @@ struct VnlRenderer {
     VnlColour  clear_colour;
 };
 
-VnlStatus vnl_renderer_init(const VnlConfig *config, GLFWwindow *window,
+VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
                             VnlRenderer **out_renderer) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
-    CLARITY_ASSERT(window != NULL, "GLFW window cannot be NULL.");
+    CLARITY_ASSERT(winman != NULL, "Window manager cannot be NULL.");
     CLARITY_ASSERT(out_renderer != NULL,
                    "out_renderer pointer cannot be NULL.");
 
@@ -41,7 +41,7 @@ VnlStatus vnl_renderer_init(const VnlConfig *config, GLFWwindow *window,
         return VNL_ERROR_OUT_OF_MEMORY;
     }
 
-    VnlStatus status = vulkan_init(config, window, &renderer->vkctx);
+    VnlStatus status = vulkan_init(config, winman, &renderer->vkctx);
     if (status != VNL_SUCCESS) {
         CLARITY_FREE(renderer);
         return status;

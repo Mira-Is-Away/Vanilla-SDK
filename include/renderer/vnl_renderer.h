@@ -10,25 +10,20 @@
 #ifndef VANILLA_RENDERER_VNL_RENDERER_H_
 #define VANILLA_RENDERER_VNL_RENDERER_H_
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <core/vnl_status.h>
 #include <core/vnl_types.h>
 
-/**
- * @struct VnlRenderer
- * @brief Opaque handle representing the active rendering subsystem.
- */
+typedef struct VnlWinMan   VnlWinMan;
 typedef struct VnlRenderer VnlRenderer;
 
 /**
  * @brief Initialises the rendering subsystem.
  * @param[in] config The configuration for the engine.
- * @param[in] window The GLFW window handle to bind the renderer to.
+ * @param[in] winman The window manager handle to bind the renderer to.
  * @param[out] out_renderer Pointer to store the created renderer handle.
  * @retval VNL_SUCCESS If initialization was successful.
  */
-VnlStatus vnl_renderer_init(const VnlConfig *config, GLFWwindow *window,
+VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
                             VnlRenderer **out_renderer);
 
 /**

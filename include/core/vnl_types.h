@@ -36,7 +36,8 @@ typedef struct VnlVec2 {
 
 /**
  * @struct VnlColour
- * @brief RGBA colour structure with normalized floating-point components (0.0f - 1.0f).
+ * @brief RGBA colour structure with normalized floating-point components (0.0f
+ * - 1.0f).
  */
 typedef struct VnlColour {
     f32 r;
@@ -49,10 +50,10 @@ typedef struct VnlColour {
  * @struct VnlWindow
  * @brief Window dimensions in pixels.
  */
-typedef struct VnlWindow {
+typedef struct VnlWindowConfig {
     u16 width;
     u16 height;
-} VnlWindow;
+} VnlWindowConfig;
 
 /**
  * @struct VnlGameVersion
@@ -69,11 +70,11 @@ typedef struct VnlGameVersion {
  * @brief Configuration settings for initialising the engine.
  */
 typedef struct VnlConfig {
-    VnlWindow      window;
-    VnlGameVersion version;
-    const char    *title;
-    f32            target_fps;
-    VnlColour      clear_colour;
+    VnlWindowConfig window;
+    VnlGameVersion  version;
+    const char     *title;
+    f32             target_fps;
+    VnlColour       clear_colour;
 } VnlConfig;
 
 #endif

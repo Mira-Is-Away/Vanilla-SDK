@@ -16,7 +16,8 @@
 
 /**
  * @struct VkImageViewDesc
- * @brief Descriptor containing parameters for creating image views for a set of images.
+ * @brief Descriptor containing parameters for creating image views for a set of
+ * images.
  */
 typedef struct {
     VkDevice              device;
@@ -27,7 +28,8 @@ typedef struct {
 /**
  * @brief Creates Vulkan 2D image views for each image in the descriptor.
  * @param[in] desc Pointer to the image view descriptor.
- * @param[out] out_views Pointer to a dynamic array to store the created image views.
+ * @param[out] out_views Pointer to a dynamic array to store the created image
+ * views.
  * @retval VNL_SUCCESS If image views were created successfully.
  * @retval VNL_ERROR_IMAGE_VIEW_CREATION_FAILED If image view creation failed.
  */

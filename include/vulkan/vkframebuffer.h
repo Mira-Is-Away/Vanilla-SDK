@@ -28,7 +28,8 @@ typedef struct {
 /**
  * @brief Creates framebuffers for each image view in the descriptor.
  * @param[in] desc Pointer to the framebuffer descriptor.
- * @param[out] out_framebuffers Pointer to a dynamic array to store the created framebuffers.
+ * @param[out] out_framebuffers Pointer to a dynamic array to store the created
+ * framebuffers.
  * @retval VNL_SUCCESS If framebuffers were created successfully.
  * @retval VNL_ERROR_FRAMEBUFFER_CREATION_FAILED If framebuffer creation failed.
  */

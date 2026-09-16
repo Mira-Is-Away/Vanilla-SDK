@@ -27,10 +27,12 @@ VnlStatus vk_shader_module_create(VkDevice device, const char *shader_src,
                                   size_t src_size, VkShaderModule *out_module);
 
 /**
- * @brief Reads a shader file from the shader directory into a heap-allocated buffer.
+ * @brief Reads a shader file from the shader directory into a heap-allocated
+ * buffer.
  * @param[in] filename Relative file path of the shader file.
  * @param[out] out_size Optional pointer to store the number of bytes read.
- * @return Pointer to heap-allocated buffer containing the file content, or NULL on failure.
+ * @return Pointer to heap-allocated buffer containing the file content, or NULL
+ * on failure.
  */
 char *vk_shader_read(const char *filename, size_t *out_size);
 

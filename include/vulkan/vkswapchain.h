@@ -1,7 +1,8 @@
 /**
  * @file vkswapchain.h
  *
- * Creation and configuration of Vulkan swapchains and surface capabilities query.
+ * Creation and configuration of Vulkan swapchains and surface capabilities
+ * query.
  *
  * @author Henry R
  * @date 2026-09-14
@@ -10,11 +11,12 @@
 #ifndef VNL_VULKAN_VKSWAPCHAIN_H_
 #define VNL_VULKAN_VKSWAPCHAIN_H_
 
-#include <GLFW/glfw3.h>
 #include <core/vnl_status.h>
 #include <mira/darray.h>
 #include <vulkan/vkqueue.h>
 #include <vulkan/vulkan.h>
+
+typedef struct VnlWinMan VnlWinMan;
 
 /**
  * @struct VkSwapchainInfo
@@ -28,7 +30,8 @@ typedef struct {
 
 /**
  * @struct VkSwapchainInstance
- * @brief Represents an active Vulkan swapchain with its format, extent, and images.
+ * @brief Represents an active Vulkan swapchain with its format, extent, and
+ * images.
  */
 typedef struct {
     VkSwapchainKHR  swapchain;
@@ -45,14 +48,15 @@ typedef struct {
     VkPhysicalDevice physical_device;
     VkDevice         device;
     VkSurfaceKHR     surface;
-    GLFWwindow      *window;
+    VnlWinMan       *winman;
 } VkSwapchainDesc;
 
 /**
  * @brief Queries swapchain support details for a physical device and surface.
  * @param[in] device The physical device to query.
  * @param[in] surface The window surface.
- * @return VkSwapchainInfo structure containing capabilities, formats, and present modes.
+ * @return VkSwapchainInfo structure containing capabilities, formats, and
+ * present modes.
  */
 VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
                                            VkSurfaceKHR     surface);
@@ -75,12 +79,13 @@ VkPresentModeKHR vk_swapchain_choose_present_mode(
 );
 
 /**
- * @brief Computes the swapchain 2D extent matching the window framebuffer dimensions.
- * @param[in] window The GLFW window handle.
+ * @brief Computes the swapchain 2D extent matching the window framebuffer
+ * dimensions.
+ * @param[in] winman The window manager handle.
  * @param[in] cap Pointer to the surface capabilities.
  * @return VkExtent2D with clamped dimensions.
  */
-VkExtent2D vk_swapchain_extent(GLFWwindow               *window,
+VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
                                VkSurfaceCapabilitiesKHR *cap);
 
 /**

@@ -26,9 +26,11 @@ typedef struct {
 /**
  * @brief Creates a Vulkan command pool configured for graphics command buffers.
  * @param[in] desc Pointer to the command pool descriptor.
- * @param[out] out_command_pool Pointer to store the created command pool handle.
+ * @param[out] out_command_pool Pointer to store the created command pool
+ * handle.
  * @retval VNL_SUCCESS If command pool creation was successful.
- * @retval VNL_ERROR_COMMAND_POOL_CREATION_FAILED If command pool creation failed.
+ * @retval VNL_ERROR_COMMAND_POOL_CREATION_FAILED If command pool creation
+ * failed.
  */
 VnlStatus vk_command_pool_create(const VkCommandPoolDesc *desc,
                                  VkCommandPool           *out_command_pool);
