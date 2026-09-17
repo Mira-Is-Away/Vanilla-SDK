@@ -17,8 +17,8 @@
 #include <mira/clarity.h>
 #include <mira/darray.h>
 
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <renderer/vulkan/vkcommandbuffers.h>
 #include <renderer/vulkan/vkcontext.h>
 #include <renderer/vulkan/vksync.h>

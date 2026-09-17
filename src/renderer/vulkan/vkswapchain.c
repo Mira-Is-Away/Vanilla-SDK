@@ -1,7 +1,7 @@
 #include <renderer/vulkan/vkswapchain.h>
 
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <winman/winman.h>
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG

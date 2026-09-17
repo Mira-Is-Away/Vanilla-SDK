@@ -11,7 +11,7 @@
 #ifndef VNL_VULKAN_VKSWAPCHAIN_H_
 #define VNL_VULKAN_VKSWAPCHAIN_H_
 
-#include <core/vnl_status.h>
+#include <mira/vnl_status.h>
 #include <mira/darray.h>
 #include <renderer/vulkan/vkqueue.h>
 #include <vulkan/vulkan.h>

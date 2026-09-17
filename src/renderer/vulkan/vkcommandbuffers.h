@@ -10,8 +10,8 @@
 #ifndef VNL_VULKAN_VKCOMMANDBUFFERS_H_
 #define VNL_VULKAN_VKCOMMANDBUFFERS_H_
 
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <mira/darray.h>
 #include <renderer/vulkan/vkswapchain.h>
 #include <vulkan/vulkan.h>

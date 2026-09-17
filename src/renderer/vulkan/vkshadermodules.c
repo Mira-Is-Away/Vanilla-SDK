@@ -3,9 +3,9 @@
 #ifndef NDEBUG
 #define MIRA_CLARITY_DEBUG
 #endif
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
 #include <mira/clarity.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,7 +62,7 @@ char *vk_shader_read(const char *filename, size_t *out_size) {
         return NULL;
     }
 
-    char *buffer = (char *)malloc(fsize);
+    char *buffer = (char *)CLARITY_MALLOC(fsize);
     if (!buffer) {
         fclose(f);
         return NULL;

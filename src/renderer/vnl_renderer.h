@@ -10,8 +10,8 @@
 #ifndef VANILLA_RENDERER_VNL_RENDERER_H_
 #define VANILLA_RENDERER_VNL_RENDERER_H_
 
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 
 typedef struct VnlWinMan   VnlWinMan;
 typedef struct VnlRenderer VnlRenderer;

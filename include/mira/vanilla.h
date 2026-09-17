@@ -10,9 +10,9 @@
 #ifndef VANILLA_VANILLA_H_
 #define VANILLA_VANILLA_H_
 
-#include "core/vnl_macros.h"
-#include "core/vnl_status.h"
-#include "core/vnl_types.h"
+#include <mira/vnl_macros.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 
 typedef struct VnlEngine VnlEngine;
 
