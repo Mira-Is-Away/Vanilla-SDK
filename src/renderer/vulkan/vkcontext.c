@@ -292,21 +292,14 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext                   = NULL,
         .flags                   = 0,
-        .queueCreateInfoCount    = DARRAY_SIZE(queue_create_infos),
+        .queueCreateInfoCount    = (size_t)DARRAY_SIZE(queue_create_infos),
         .pQueueCreateInfos       = queue_create_infos,
         .enabledLayerCount       = 0,
         .ppEnabledLayerNames     = NULL,
-        .enabledExtensionCount   = DARRAY_SIZE(device_ext),
+        .enabledExtensionCount   = (size_t)DARRAY_SIZE(device_ext),
         .ppEnabledExtensionNames = device_ext,
         .pEnabledFeatures        = &device_features,
     };
-
-#ifdef MIRA_CLARITY_DEBUG
-    if (vk_check_validation_layer_support()) {
-        create_info.enabledLayerCount   = validation_layer_count;
-        create_info.ppEnabledLayerNames = validation_layers;
-    }
-#endif
 
     VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL,
                                      &vkctx->device);
