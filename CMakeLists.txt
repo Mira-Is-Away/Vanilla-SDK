@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(vanilla-sdk LANGUAGES C)
+project(vanilla LANGUAGES C)
 
 set(VANILLA_SDK_VERSION "1.0.0-beta.14")
 
@@ -18,7 +18,16 @@ FetchContent_Declare(
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# Temporarily disable shared libraries so GLFW builds statically.
+# This is so that the .so/.dll/.dylib bundles glfw with it.
+set(BUILD_SHARED_LIBS_SAVED ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(glfw)
+
+# Restore the shared library setting
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVED} CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
     mira_clarity
@@ -77,22 +86,26 @@ set(SPIRV_BIN_FILES "")
 foreach(SHADER_SRC ${SHADER_SOURCES})
     get_filename_component(FILE_NAME ${SHADER_SRC} NAME)
     set(SPIRV_OUT "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv")
+    set(SPIRV_HEADER "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv.h")
 
     add_custom_command(
-        OUTPUT ${SPIRV_OUT}
+        OUTPUT ${SPIRV_OUT} ${SPIRV_HEADER}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders"
         COMMAND ${GLSLC_EXE} ${SHADER_SRC} -o ${SPIRV_OUT}
+        COMMAND ${GLSLC_EXE} -mfmt=c ${SHADER_SRC} -o ${SPIRV_HEADER}
         DEPENDS ${SHADER_SRC}
-        COMMENT "Compiling shader ${FILE_NAME} -> ${FILE_NAME}.spv"
+        COMMENT "Compiling shader ${FILE_NAME} -> .spv and C header"
         VERBATIM
     )
 
-    list(APPEND SPIRV_BIN_FILES ${SPIRV_OUT})
+    list(APPEND SPIRV_BIN_FILES ${SPIRV_OUT} ${SPIRV_HEADER})
 endforeach()
 
 add_custom_target(CompileShaders DEPENDS ${SPIRV_BIN_FILES})
 
-add_library(vanilla SHARED
+option(BUILD_SHARED_LIBS "Build Vanilla as a shared library rather than static" ON)
+
+add_library(vanilla
     src/winman/winman.c
     src/core/vanilla.c
     src/renderer/vulkan/vnl_renderer_vk.c
@@ -111,18 +124,23 @@ add_library(vanilla SHARED
     src/vnl_ds/vnl_list.c
 )
 
-add_dependencies(vanilla Format CompileShaders)
+add_dependencies(${PROJECT_NAME} Format CompileShaders)
 
-set_target_properties(vanilla PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
-    OUTPUT_NAME "vanilla"
+    OUTPUT_NAME "${PROJECT_NAME}"
 )
 
-target_include_directories(vanilla PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_link_libraries(vanilla PUBLIC
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_BINARY_DIR}/shaders
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
     glfw
     mira_clarity
     mira_darray
@@ -131,37 +149,28 @@ target_link_libraries(vanilla PUBLIC
     ${CMAKE_DL_LIBS}
 )
 
-target_compile_definitions(vanilla PRIVATE 
-    VNL_BUILD_SHARED
-    SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders/"
-)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-add_executable(${PROJECT_NAME} main.c)
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE     VNL_BUILD_SHARED
+        INTERFACE   VNL_USE_SHARED
+    )
+endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    vanilla
-)
+option(VANILLA_BUILD_TESTS "Build the testing suite" ON)
+if(VANILLA_BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")
+    add_subdirectory(tests)
+endif()
 
 if(MSVC)
-    target_compile_definitions(vanilla PRIVATE _CRT_SECURE_NO_WARNINGS)
-    target_compile_options(vanilla PRIVATE
-        $<$<CONFIG:Debug>:/W4 /Zi /Od /utf-8 /permissive->
-        $<$<CONFIG:Release>:/O2 /DNDEBUG>
-        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
-    )
-    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS VNL_USE_SHARED)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:/W4 /Zi /Od /utf-8 /permissive->
         $<$<CONFIG:Release>:/O2 /DNDEBUG>
         $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
     )
 else()
-    target_compile_options(vanilla PRIVATE
-        $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic -Werror>
-        $<$<CONFIG:Release>:-O3 -DNDEBUG>
-        $<$<CONFIG:RelWithDebInfo>: -O2 -g>
-        $<$<CONFIG:MinSizeRel>:-Os -DNDEBUG>
-    )
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic -Werror>
         $<$<CONFIG:Release>:-O3 -DNDEBUG>

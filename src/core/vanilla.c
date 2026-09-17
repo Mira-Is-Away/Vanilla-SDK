@@ -11,8 +11,8 @@
 #define MIRA_CLARITY_IMPL
 #include <mira/clarity.h>
 #define MIRA_DARRAY_IMPL
-#include <core/vnl_types.h>
 #include <mira/darray.h>
+#include <mira/vnl_types.h>
 #include <renderer/vnl_renderer.h>
 #include <winman/winman.h>
 

@@ -11,7 +11,7 @@
 #ifndef VANILLA_VULKAN_VKCONTEXT_H_
 #define VANILLA_VULKAN_VKCONTEXT_H_
 
-#include <core/vnl_status.h>
+#include <mira/vnl_status.h>
 #include <vulkan/vulkan.h>
 
 #include <mira/darray.h>

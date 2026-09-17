@@ -12,8 +12,8 @@
 
 #include <stdbool.h>
 
-#include <core/vnl_status.h>
-#include <core/vnl_types.h>
+#include <mira/vnl_status.h>
+#include <mira/vnl_types.h>
 #include <vulkan/vulkan.h>
 
 typedef struct GLFWwindow GLFWwindow;

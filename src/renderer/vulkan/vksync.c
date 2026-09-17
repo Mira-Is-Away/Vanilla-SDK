@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <core/vnl_status.h>
 #include <mira/clarity.h>
 #include <mira/darray.h>
+#include <mira/vnl_status.h>
 #include <vulkan/vulkan.h>
 
 VnlStatus vk_sync_create(const VkSyncDesc *desc, VkSync *out_sync) {

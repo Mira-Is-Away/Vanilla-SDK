@@ -4,9 +4,9 @@
 #define MIRA_CLARITY_DEBUG
 #endif
 
-#include <core/vnl_status.h>
 #include <mira/clarity.h>
 #include <mira/darray.h>
+#include <mira/vnl_status.h>
 
 VnlStatus vk_framebuffers_create(const VkFramebufferDesc *desc,
                                  DARRAY(VkFramebuffer)   *out_framebuffers) {

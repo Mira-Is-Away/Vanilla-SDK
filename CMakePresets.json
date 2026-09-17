@@ -6,7 +6,11 @@
       "displayName": "Ninja Multi-Config",
       "description": "Enforces Ninja Multi-Config",
       "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build"
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "ON",
+        "VANILLA_BUILD_TESTS": "ON"
+      }
     }
   ]
 }
