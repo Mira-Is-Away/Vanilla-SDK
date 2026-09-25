@@ -181,12 +181,10 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
         NULL, &extension_count, extensions);
 
     static DARRAY(const char *) queried_instance_extensions = NULL;
-    if (!queried_instance_extensions) {
-        DARRAY_PUSH(queried_instance_extensions,
-                    VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-    }
+    DARRAY_PUSH(queried_instance_extensions,
+                VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
-    DARRAY(const char *) supported_extensions = NULL;
+    DARRAY(const char *) selected_extensions = NULL;
 
     for (u32 i = 0; i < extension_count; i++) {
         CLARITY_LOG_INFO("Vulkan: Extension found: %s",
@@ -197,19 +195,15 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
                 // Queried instance extension is supported, can load
                 CLARITY_LOG_INFO("Vulkan: %s was requested and is supported.",
                                  extensions[i].extensionName);
-                DARRAY_PUSH(supported_extensions,
+                DARRAY_PUSH(selected_extensions,
                             queried_instance_extensions[j]);
             }
         }
     }
 
-    DARRAY_FOREACH(const char *, name, supported_extensions) {
-        printf("\n%s\n", *name);
-    }
-
     VkApplicationInfo    app_info = vk_context_init_app_info(config);
     VkInstanceCreateInfo instance_info =
-        vk_context_init_instance_create_info(&app_info, supported_extensions);
+        vk_context_init_instance_create_info(&app_info, selected_extensions);
 
     VkInstance instance;
     result = vkCreateInstance(&instance_info, NULL, &instance);
