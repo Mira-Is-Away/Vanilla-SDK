@@ -105,14 +105,28 @@ static DARRAY(const char *) vk_get_required_ext() {
 }
 
 static VkInstanceCreateInfo
-vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
+vk_context_init_instance_create_info(const VkApplicationInfo *app_info,
+                                     DARRAY(const char *)     opt_extensions) {
+
+    VkInstanceCreateFlagBits flags = 0;
+
+    if (DARRAY_SIZE(opt_extensions) > 0) {
+        /**
+         * This is a very temporary solution; Ideally the flags would be
+         * updated dynamically according to requested extensions.
+         */
+        flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+    }
+
     VkInstanceCreateInfo create_info = {
-        .sType               = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext               = NULL,
-        .flags               = 0,
-        .pApplicationInfo    = app_info,
-        .enabledLayerCount   = 0,
-        .ppEnabledLayerNames = NULL,
+        .sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext                   = NULL,
+        .flags                   = flags,
+        .pApplicationInfo        = app_info,
+        .enabledLayerCount       = 0,
+        .ppEnabledLayerNames     = NULL,
+        .enabledExtensionCount   = DARRAY_SIZE(opt_extensions),
+        .ppEnabledExtensionNames = (const char *const *)opt_extensions,
     };
 
 #ifdef MIRA_CLARITY_DEBUG
@@ -127,8 +141,24 @@ vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
 
     DARRAY(const char *) req_ext = vk_get_required_ext();
 
-    create_info.enabledExtensionCount   = (u32)DARRAY_SIZE(req_ext);
-    create_info.ppEnabledExtensionNames = req_ext;
+    /** Logic to deal with a dynamic number of extensions that should be loaded.
+     *  Could likely look nicer than this.
+     */
+    u32 ext_count =
+        (u32)DARRAY_SIZE(req_ext) + (u32)DARRAY_SIZE(opt_extensions);
+
+    DARRAY(const char *) extensions = NULL;
+
+    DARRAY_FOREACH(const char *, ext, req_ext) {
+        DARRAY_PUSH(extensions, *ext);
+    }
+
+    DARRAY_FOREACH(const char *, ext, opt_extensions) {
+        DARRAY_PUSH(extensions, *ext);
+    }
+
+    create_info.enabledExtensionCount   = ext_count;
+    create_info.ppEnabledExtensionNames = (const char *const *)extensions;
 
     return create_info;
 }
@@ -140,18 +170,56 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     u32 extension_count = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
 
+    // DARRAY(VkExtensionProperties) extensions;
+    // DARRAY_RESERVE(extensions, extension_count);
+    // Can't use RESERVE because the amount of extensions returned might be
+    // smaller than the intial value of extension_count
+    VkExtensionProperties *extensions =
+        CLARITY_MALLOC(extension_count * sizeof(VkExtensionProperties));
+
+    VkResult result = vkEnumerateInstanceExtensionProperties(
+        NULL, &extension_count, extensions);
+
+    static DARRAY(const char *) queried_instance_extensions = NULL;
+    if (!queried_instance_extensions) {
+        DARRAY_PUSH(queried_instance_extensions,
+                    VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    }
+
+    DARRAY(const char *) supported_extensions = NULL;
+
+    for (u32 i = 0; i < extension_count; i++) {
+        CLARITY_LOG_INFO("Vulkan: Extension found: %s",
+                         extensions[i].extensionName);
+        for (u64 j = 0; j < DARRAY_SIZE(queried_instance_extensions); j++) {
+            if (strcmp(extensions[i].extensionName,
+                       queried_instance_extensions[j]) == 0) {
+                // Queried instance extension is supported, can load
+                CLARITY_LOG_INFO("Vulkan: %s was requested and is supported.",
+                                 extensions[i].extensionName);
+                DARRAY_PUSH(supported_extensions,
+                            queried_instance_extensions[j]);
+            }
+        }
+    }
+
+    DARRAY_FOREACH(const char *, name, supported_extensions) {
+        printf("\n%s\n", *name);
+    }
+
     VkApplicationInfo    app_info = vk_context_init_app_info(config);
     VkInstanceCreateInfo instance_info =
-        vk_context_init_instance_create_info(&app_info);
+        vk_context_init_instance_create_info(&app_info, supported_extensions);
 
     VkInstance instance;
-    VkResult   result = vkCreateInstance(&instance_info, NULL, &instance);
+    result = vkCreateInstance(&instance_info, NULL, &instance);
 
     if (result != VK_SUCCESS) {
         CLARITY_LOG_WARN("Failed to initialise Vulkan Instance.");
         return VNL_ERROR_VULKAN_INSTANCE_CREATION_FAILED;
     }
 
+    CLARITY_FREE(extensions);
     vkctx->instance = instance;
     return VNL_SUCCESS;
 }
