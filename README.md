@@ -14,7 +14,7 @@ The `dev` branch is used in active development for untested code and should neve
 
 To compile this project, you need a C17-compatible compiler, the Ninja build system and CMake 3.22+, as well as an active internet connection during compilation for dependency fetching.
 
-It is highly recommended to install `clang-format`, since it is used by this project's CMake configuration to automatically format the codebase before compilation. Note that, while it is listed among the project's dependencies, it is, in fact, optional, and the project will still compile if the package isn't found (although automatic formatting will be turned off.
+It is highly recommended to install `clang-format`, since it is used by this project's CMake configuration to automatically format the codebase before compilation. Note that, while it is listed among the project's dependencies, it is, in fact, optional, and the project will still compile if the package isn't found (although automatic formatting will be turned off).
 
 ### Dependencies (Linux)
 
@@ -67,7 +67,8 @@ sudo apt-get install \
 Use the provided build script (this will compile in Debug mode by default):
 
 ```bash
-./build.sh
+./build.sh  # Linux
+./build.bat # Windows
 ```
 
 Or manually:
@@ -76,3 +77,4 @@ Or manually:
 cmake --preset default
 cmake --build build --config Debug
 ```
+On Windows, the project is configured to compile using the MSVC compiler. Therefore, compiling for Windows requires Visual Studio 2022 to be installed on the machine.
