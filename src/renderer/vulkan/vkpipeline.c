@@ -77,11 +77,6 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
     DARRAY_PUSH(shader_stages, v_create_info);
     DARRAY_PUSH(shader_stages, f_create_info);
 
-    /**
-     * The entire next session is full of currently unused structs, but that
-     * will be used later. The next section is commented out to avoid "unused
-     * variable" warnings.
-     */
     VkPipelineVertexInputStateCreateInfo vertex_input_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = NULL,

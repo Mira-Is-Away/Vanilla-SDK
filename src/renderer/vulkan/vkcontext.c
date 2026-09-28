@@ -247,7 +247,7 @@ static bool vk_check_ext_suppport(VkPhysicalDevice device) {
     CLARITY_FREE(available_ext);
     return found;
 }
-
+/*
 static bool vk_is_device_suitable(VkPhysicalDevice device,
                                   VkSurfaceKHR     surface) {
     VkQueueFamilyIndices indices = vk_find_queue_families(device, surface);
@@ -263,7 +263,7 @@ static bool vk_is_device_suitable(VkPhysicalDevice device,
     return indices.has_graphics_family && indices.has_present_family &&
            ext_supported && adeq_swapchain;
 }
-
+*/
 static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
     CLARITY_ASSERT(vkctx->instance != VK_NULL_HANDLE,
@@ -288,10 +288,61 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, devices);
 
     for (u32 i = 0; i < device_count; i++) {
-        if (vk_is_device_suitable(devices[i], vkctx->surface)) {
-            physical_device = devices[i];
-            break;
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(devices[i], &properties);
+
+        CLARITY_LOG_INFO("Found device %s", properties.deviceName);
+
+        if (properties.apiVersion < VK_API_VERSION_1_3) {
+            // Vanilla requires at least support for Vulkan 1.3 to run properly.
+            continue;
         }
+
+        // Check if graphics queue families are supported
+        u32 qfp_count; // qfp -> queue family properties
+        vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &qfp_count, NULL);
+        CLARITY_ASSERT(qfp_count > 0,
+                       "Found GPU with zero queue family support.");
+
+        VkQueueFamilyProperties *qfp =
+            CLARITY_MALLOC(qfp_count * sizeof(VkQueueFamilyProperties));
+        if (!qfp) {
+            return VNL_ERROR_OUT_OF_MEMORY;
+        }
+        vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &qfp_count, qfp);
+
+        u32 supports_graphics = false;
+        for (u32 j = 0; j < qfp_count; j++) {
+            supports_graphics = qfp[j].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+            if (supports_graphics)
+                break;
+        }
+
+        if (!supports_graphics)
+            continue;
+
+        CLARITY_FREE(qfp);
+
+        // Check for required extensions
+        bool ext_supported = vk_check_ext_suppport(devices[i]);
+        if (!ext_supported)
+            continue;
+
+        // Check if there is support for an adequate swapchain
+        if (ext_supported) {
+            VkSwapchainInfo sc_info =
+                vk_swapchain_query_support(devices[i], vkctx->surface);
+            u32 adeq_swapchain = DARRAY_SIZE(sc_info.formats) != 0 &&
+                                 DARRAY_SIZE(sc_info.present_modes) != 0;
+
+            if (!adeq_swapchain)
+                continue;
+        }
+
+        // If it passes all checks, it is a suitable GPU
+        physical_device = devices[i];
+        CLARITY_LOG_INFO("Device selected is %s", properties.deviceName);
+        break;
     }
 
     CLARITY_FREE(devices);
@@ -315,9 +366,9 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         vk_find_queue_families(vkctx->physical_device, vkctx->surface);
 
     /**
-     * The current approach only allows for two queues, since
-     * queue_create_infos is a simple fixed-size array with
-     * information to create the graphics and present queues.
+     * The current approach only allows for two hardcoded queues with
+     * information to create the graphics and present queues. Future iterations
+     * should handle queue creation more dynamically and granularly.
      */
 
     f32                             queue_priority     = 1.0f;
