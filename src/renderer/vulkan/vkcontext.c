@@ -133,7 +133,7 @@ vk_context_init_instance_create_info(const VkApplicationInfo *app_info,
     if (vk_check_validation_layer_support()) {
         create_info.enabledLayerCount   = validation_layer_count;
         create_info.ppEnabledLayerNames = validation_layers;
-        CLARITY_LOG_INFO("Validation layers enabled.");
+        CLARITY_LOG_OK("Validation layers enabled.");
     } else {
         CLARITY_LOG_WARN("Validation layers requested, but not available.");
     }
@@ -193,8 +193,8 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
             if (strcmp(extensions[i].extensionName,
                        queried_instance_extensions[j]) == 0) {
                 // Queried instance extension is supported, can load
-                CLARITY_LOG_INFO("Vulkan: %s was requested and is supported.",
-                                 extensions[i].extensionName);
+                CLARITY_LOG_OK("Vulkan: %s was requested and is supported.",
+                               extensions[i].extensionName);
                 DARRAY_PUSH(selected_extensions,
                             queried_instance_extensions[j]);
             }
@@ -341,7 +341,7 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
 
         // If it passes all checks, it is a suitable GPU
         physical_device = devices[i];
-        CLARITY_LOG_INFO("Device selected is %s", properties.deviceName);
+        CLARITY_LOG_OK("Device selected is %s", properties.deviceName);
         break;
     }
 
