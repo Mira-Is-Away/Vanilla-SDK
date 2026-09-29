@@ -287,6 +287,14 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
 
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, devices);
 
+    // This will store the integrated GPU options and will only be used if no
+    // integrated GPUs are found.
+    VkPhysicalDevice *device_candidates =
+        CLARITY_MALLOC(device_count * sizeof(VkPhysicalDevice));
+    VkPhysicalDeviceProperties *device_candidates_properties =
+        CLARITY_MALLOC(device_count * sizeof(VkPhysicalDeviceProperties));
+    u32 canditates_index = 0;
+
     for (u32 i = 0; i < device_count; i++) {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(devices[i], &properties);
@@ -302,7 +310,8 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
         u32 qfp_count; // qfp -> queue family properties
         vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &qfp_count, NULL);
         CLARITY_ASSERT(qfp_count > 0,
-                       "Found GPU with zero queue family support.");
+                       "Found GPU with zero queue family support, this "
+                       "shouldn't be allowed by the Vulkan spec.");
 
         VkQueueFamilyProperties *qfp =
             CLARITY_MALLOC(qfp_count * sizeof(VkQueueFamilyProperties));
@@ -339,13 +348,41 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
                 continue;
         }
 
-        // If it passes all checks, it is a suitable GPU
-        physical_device = devices[i];
-        CLARITY_LOG_OK("Device selected is %s", properties.deviceName);
-        break;
+        // If it passes all checks, it is a suitable GPU.
+        if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+            // However, we'll keep looking just in case there is a suitable
+            // dedicated GPU available.
+            device_candidates[canditates_index]              = devices[i];
+            device_candidates_properties[canditates_index++] = properties;
+
+        } else if (properties.deviceType ==
+                   VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            // If we do find a suitable dedicated GPU, we'll use it.
+            physical_device = devices[i];
+            CLARITY_LOG_OK("Device selected is %s", properties.deviceName);
+            break;
+        }
+
+        if (i == (device_count - 1)) {
+            // If this is the last GPU and we stil haven't found a discrete
+            // GPU, we'll go with the first suitable option from the
+            // integrated candidates.
+
+            if (canditates_index == 0) {
+                // No valid GPU options were found.
+                break;
+            }
+
+            physical_device = device_candidates[0];
+            CLARITY_LOG_OK("Device selected is %s",
+                           device_candidates_properties[0].deviceName);
+            break;
+        }
     }
 
     CLARITY_FREE(devices);
+    CLARITY_FREE(device_candidates);
+    CLARITY_FREE(device_candidates_properties);
 
     if (physical_device == VK_NULL_HANDLE) {
         CLARITY_LOG_WARN("Failed to find a GPU with Vulkan support.");

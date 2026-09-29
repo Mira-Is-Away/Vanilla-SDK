@@ -1,7 +1,7 @@
 /**
  * @file vnl_status.h
  *
- * Definition of the status codes used throughout the engine.
+ * Definition of the status codes used by the library.
  *
  * @author Henry R
  * @date 26-02-28
