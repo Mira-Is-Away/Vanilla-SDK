@@ -72,6 +72,7 @@ static bool vk_check_validation_layer_support(void) {
 
 static const char *const g_required_device_extensions[] = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,
 };
 static const u32 required_extension_count =
     sizeof(g_required_device_extensions) /
@@ -422,8 +423,7 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx->physical_device != VK_NULL_HANDLE,
                    "Physical device cannot be NULL.");
 
-    VkPhysicalDeviceFeatures device_features = {0};
-    VkQueueFamilyIndices     indices =
+    VkQueueFamilyIndices indices =
         vk_find_queue_families(vkctx->physical_device, vkctx->surface);
 
     /**
@@ -459,9 +459,35 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         DARRAY_PUSH(queue_create_infos, queue_create_info);
     }
 
+    VkPhysicalDeviceExtendedDynamicStateFeaturesEXT
+        extended_dynamic_state_features = {
+            .sType =
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
+            .pNext                = NULL,
+            .extendedDynamicState = VK_TRUE,
+        };
+
+    VkPhysicalDeviceVulkan13Features vulkan_13_features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .pNext = &extended_dynamic_state_features,
+        .dynamicRendering = VK_TRUE,
+    };
+
+    VkPhysicalDeviceVulkan11Features vulkan_11_features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+        .pNext = &vulkan_13_features,
+        .shaderDrawParameters = VK_TRUE,
+    };
+
+    VkPhysicalDeviceFeatures2 features2 = {
+        .sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext    = &vulkan_11_features,
+        .features = {0},
+    };
+
     VkDeviceCreateInfo create_info = {
         .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext                   = NULL,
+        .pNext                   = &features2,
         .flags                   = 0,
         .queueCreateInfoCount    = (size_t)DARRAY_SIZE(queue_create_infos),
         .pQueueCreateInfos       = queue_create_infos,
@@ -469,7 +495,7 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .ppEnabledLayerNames     = NULL,
         .enabledExtensionCount   = (size_t)required_extension_count,
         .ppEnabledExtensionNames = g_required_device_extensions,
-        .pEnabledFeatures        = &device_features,
+        .pEnabledFeatures        = NULL,
     };
 
     VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL,
