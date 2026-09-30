@@ -70,6 +70,13 @@ static bool vk_check_validation_layer_support(void) {
 }
 #endif
 
+static const char *const g_required_device_extensions[] = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+};
+static const u32 required_extension_count =
+    sizeof(g_required_device_extensions) /
+    sizeof(g_required_device_extensions[0]);
+
 static VkApplicationInfo vk_context_init_app_info(const VnlConfig *config) {
     return (VkApplicationInfo){
         .sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -187,7 +194,7 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     DARRAY(const char *) selected_extensions = NULL;
 
     for (u32 i = 0; i < extension_count; i++) {
-        CLARITY_LOG_INFO("Vulkan: Extension found: %s",
+        CLARITY_LOG_INFO("Vulkan extension found: %s",
                          extensions[i].extensionName);
         for (u64 j = 0; j < DARRAY_SIZE(queried_instance_extensions); j++) {
             if (strcmp(extensions[i].extensionName,
@@ -235,18 +242,35 @@ static bool vk_check_ext_suppport(VkPhysicalDevice device) {
     vkEnumerateDeviceExtensionProperties(device, NULL, &ext_count,
                                          available_ext);
 
-    bool found = false;
-    for (u32 i = 0; i < ext_count; i++) {
-        if (strcmp(available_ext[i].extensionName,
-                   VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
-            found = true;
-            break;
+    bool all_ext_supported = true;
+
+    for (u32 i = 0; i < required_extension_count; i++) {
+        bool found = false;
+        for (u32 j = 0; j < ext_count; j++) {
+            if (strcmp(available_ext[j].extensionName,
+                       g_required_device_extensions[i]) == 0) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            CLARITY_LOG_OK("Found support for the following extension: %s",
+                           g_required_device_extensions[i]);
+        } else {
+            // All available extensions were checked but the required extension
+            // is not supported.
+            CLARITY_LOG_ERROR(
+                "Missing support for the following Vulkan extension: %s",
+                g_required_device_extensions[i]);
+            all_ext_supported = false;
         }
     }
 
     CLARITY_FREE(available_ext);
-    return found;
+    return all_ext_supported;
 }
+
 /*
 static bool vk_is_device_suitable(VkPhysicalDevice device,
                                   VkSurfaceKHR     surface) {
@@ -435,9 +459,6 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         DARRAY_PUSH(queue_create_infos, queue_create_info);
     }
 
-    DARRAY(const char *) device_ext = NULL;
-    DARRAY_PUSH(device_ext, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-
     VkDeviceCreateInfo create_info = {
         .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext                   = NULL,
@@ -446,8 +467,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .pQueueCreateInfos       = queue_create_infos,
         .enabledLayerCount       = 0,
         .ppEnabledLayerNames     = NULL,
-        .enabledExtensionCount   = (size_t)DARRAY_SIZE(device_ext),
-        .ppEnabledExtensionNames = device_ext,
+        .enabledExtensionCount   = (size_t)required_extension_count,
+        .ppEnabledExtensionNames = g_required_device_extensions,
         .pEnabledFeatures        = &device_features,
     };
 
