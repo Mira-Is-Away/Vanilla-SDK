@@ -426,12 +426,6 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     VkQueueFamilyIndices indices =
         vk_find_queue_families(vkctx->physical_device, vkctx->surface);
 
-    /**
-     * The current approach only allows for two hardcoded queues with
-     * information to create the graphics and present queues. Future iterations
-     * should handle queue creation more dynamically and granularly.
-     */
-
     f32                             queue_priority     = 1.0f;
     DARRAY(VkDeviceQueueCreateInfo) queue_create_infos = NULL;
 
@@ -446,6 +440,10 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
 
     DARRAY_PUSH(queue_create_infos, queue_create_info);
 
+    /**
+     * If the present queue family is different from the graphics queue family
+     * we need to create a separate queue for it.
+     */
     if (indices.graphics_family != indices.present_family) {
         queue_create_info = (VkDeviceQueueCreateInfo){
             .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -508,8 +506,13 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
 
     vkGetDeviceQueue(vkctx->device, indices.graphics_family, 0,
                      &vkctx->graphics_queue);
-    vkGetDeviceQueue(vkctx->device, indices.present_family, 0,
-                     &vkctx->present_queue);
+
+    if (indices.graphics_family != indices.present_family) {
+        vkGetDeviceQueue(vkctx->device, indices.present_family, 0,
+                         &vkctx->present_queue);
+    } else {
+        vkctx->present_queue = vkctx->graphics_queue;
+    }
 
     return VNL_SUCCESS;
 }
