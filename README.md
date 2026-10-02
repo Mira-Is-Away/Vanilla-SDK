@@ -14,6 +14,8 @@ The `dev` branch is used in active development for untested code and should neve
 
 To compile this project, you need a C17-compatible compiler, the Ninja build system and CMake 3.22+, as well as an active internet connection during compilation for dependency fetching.
 
+You also need [Slang](https://github.com/shader-slang/slang) (`slangc`) for shader compilation. Slang compiles `.slang` shaders to SPIR-V 1.4 bytecode during the build. It can be installed from your distribution's package manager (see below) or downloaded directly from the [Slang releases page](https://github.com/shader-slang/slang/releases).
+
 It is highly recommended to install `clang-format`, since it is used by this project's CMake configuration to automatically format the codebase before compilation. Note that, while it is listed among the project's dependencies, it is, in fact, optional, and the project will still compile if the package isn't found (although automatic formatting will be turned off).
 
 ### Dependencies (Linux)
@@ -21,11 +23,13 @@ It is highly recommended to install `clang-format`, since it is used by this pro
 For Fedora/Red Hat-based systems, you can install the required development headers with:
 
 ```bash
+# Enable the shader-slang COPR repository
+sudo dnf copr enable rustyclanker/slang
 sudo dnf install \
     gcc \
     cmake \
     ninja-build \
-    glslc \
+    shader-slang \
     clang-tools-extra \
     vulkan-loader-devel \
     vulkan-validation-layers \
@@ -47,7 +51,7 @@ sudo apt-get install \
     build-essential \
     cmake \
     ninja-build \
-    glslc \
+    slang-compiler \
     clang-format \
     libvulkan-dev \
     libwayland-dev \

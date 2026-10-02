@@ -66,35 +66,79 @@ else()
     add_custom_target(Format)
 endif()
 
-# glslc compiler for SPIR-V shader compilation
-find_program(GLSLC_EXE glslc
+# slangc compiler for SPIR-V 1.4 shader compilation
+find_program(SLANGC_EXE slangc
     HINTS $ENV{VULKAN_SDK}/bin $ENV{VULKAN_SDK}/RunTimeInstaller
-    DOC "Path to glslc shader compiler"
+    DOC "Path to slangc shader compiler"
 )
 
-if(NOT GLSLC_EXE)
-    message(FATAL_ERROR "glslc not found! Please, make sure glslc is installed and included inside your PATH.")
+if(NOT SLANGC_EXE)
+    message(FATAL_ERROR "slangc not found! Please, make sure slangc is installed and included inside your PATH.")
 endif()
 
+# Helper script that converts a .spv binary into a C uint32_t array header.
+# slangc does not support the -mfmt=c flag, so we generate the header
+# ourselves. The script is invoked as a custom command during the build.
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/spv_to_header.cmake" [=[
+file(READ "${SPV_INPUT}" spv_content HEX)
+string(LENGTH "${spv_content}" hex_len)
+math(EXPR last "${hex_len} - 8")
+set(words "")
+foreach(i RANGE 0 ${last} 8)
+    string(SUBSTRING "${spv_content}" ${i} 2 b0)
+    math(EXPR i1 "${i} + 2")
+    string(SUBSTRING "${spv_content}" ${i1} 2 b1)
+    math(EXPR i2 "${i} + 4")
+    string(SUBSTRING "${spv_content}" ${i2} 2 b2)
+    math(EXPR i3 "${i} + 6")
+    string(SUBSTRING "${spv_content}" ${i3} 2 b3)
+    list(APPEND words "0x${b3}${b2}${b1}${b0}")
+endforeach()
+string(JOIN ",\n" c_array ${words})
+file(WRITE "${HEADER_OUTPUT}" "{\n${c_array}\n}\n")
+]=])
+
 set(SHADER_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/vertex.vert
-    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fragment.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/vertex.slang
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fragment.slang
 )
+
+# Map each .slang source to its entry point and stage
+set(SHADER_vertex_ENTRY  "main")
+set(SHADER_vertex_STAGE  "vertex")
+set(SHADER_fragment_ENTRY "main")
+set(SHADER_fragment_STAGE "fragment")
 
 set(SPIRV_BIN_FILES "")
 
 foreach(SHADER_SRC ${SHADER_SOURCES})
-    get_filename_component(FILE_NAME ${SHADER_SRC} NAME)
+    get_filename_component(FILE_NAME ${SHADER_SRC} NAME_WE)  # e.g. "vertex"
     set(SPIRV_OUT "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv")
     set(SPIRV_HEADER "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}.spv.h")
 
     add_custom_command(
-        OUTPUT ${SPIRV_OUT} ${SPIRV_HEADER}
+        OUTPUT ${SPIRV_OUT}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders"
-        COMMAND ${GLSLC_EXE} ${SHADER_SRC} -o ${SPIRV_OUT}
-        COMMAND ${GLSLC_EXE} -mfmt=c ${SHADER_SRC} -o ${SPIRV_HEADER}
+        COMMAND ${SLANGC_EXE}
+            ${SHADER_SRC}
+            -target spirv
+            -profile spirv_1_4
+            -entry ${SHADER_${FILE_NAME}_ENTRY}
+            -stage ${SHADER_${FILE_NAME}_STAGE}
+            -o ${SPIRV_OUT}
         DEPENDS ${SHADER_SRC}
-        COMMENT "Compiling shader ${FILE_NAME} -> .spv and C header"
+        COMMENT "Compiling Slang shader ${FILE_NAME}.slang -> SPIR-V 1.4"
+        VERBATIM
+    )
+
+    add_custom_command(
+        OUTPUT ${SPIRV_HEADER}
+        COMMAND ${CMAKE_COMMAND}
+            -DSPV_INPUT=${SPIRV_OUT}
+            -DHEADER_OUTPUT=${SPIRV_HEADER}
+            -P "${CMAKE_CURRENT_BINARY_DIR}/spv_to_header.cmake"
+        DEPENDS ${SPIRV_OUT}
+        COMMENT "Generating C header for ${FILE_NAME}.spv"
         VERBATIM
     )
 

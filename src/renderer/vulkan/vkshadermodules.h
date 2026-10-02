@@ -1,7 +1,8 @@
 /**
  * @file vkshadermodules.h
  *
- * Loading and creation of Vulkan shader modules from SPIR-V bytecode.
+ * Loading and creation of Vulkan shader modules from Slang-compiled SPIR-V 1.4
+ * bytecode.
  *
  * @author Henry R
  * @date 2026-09-14

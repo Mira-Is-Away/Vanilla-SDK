@@ -33,11 +33,11 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
                    "Output pipeline layout pointer cannot be NULL.");
 
     static const uint32_t vert_spv[] =
-#include "vertex.vert.spv.h"
+#include "vertex.spv.h"
         ;
 
     static const uint32_t frag_spv[] =
-#include "fragment.frag.spv.h"
+#include "fragment.spv.h"
         ;
 
     VkShaderModule vert_m, frag_m;
