@@ -30,7 +30,7 @@ typedef struct VkPipelineInstance {
 typedef struct {
     VkDevice     device;
     VkRenderPass render_pass;
-    VkExtent2D   extent;
+    VkSwapchainInstance   swapchain;
 } VkPipelineDesc;
 
 /**

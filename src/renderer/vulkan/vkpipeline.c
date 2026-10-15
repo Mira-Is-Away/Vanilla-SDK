@@ -179,8 +179,20 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
 
     out_pipeline->layout = pipeline_layout;
 
+    VkPipelineRenderingCreateInfo pipeline_rendering_info =
+        (VkPipelineRenderingCreateInfo){
+            .sType    = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+            .pNext    = VK_NULL_HANDLE,
+            .viewMask = 0,
+            .colorAttachmentCount    = 1,
+            .pColorAttachmentFormats = &desc->swapchain.format,
+            .depthAttachmentFormat   = 0,
+            .stencilAttachmentFormat = 0,
+        };
+
     VkGraphicsPipelineCreateInfo pipeline_info = (VkGraphicsPipelineCreateInfo){
         .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext               = &pipeline_rendering_info,
         .stageCount          = 2,
         .pStages             = shader_stages,
         .pVertexInputState   = &vertex_input_info,
@@ -192,7 +204,7 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .pColorBlendState    = &colour_blend_info,
         .pDynamicState       = &dynamic_state,
         .layout              = pipeline_layout,
-        .renderPass          = desc->render_pass,
+        .renderPass          = NULL,
         .subpass             = 0,
         .basePipelineHandle  = VK_NULL_HANDLE,
         .basePipelineIndex   = -1,

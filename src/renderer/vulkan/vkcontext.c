@@ -627,7 +627,7 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     VkPipelineDesc pipeline_desc = {
         .device      = vkctx->device,
         .render_pass = vkctx->render_pass,
-        .extent      = vkctx->swapchain.extent,
+        .swapchain   = vkctx->swapchain,
     };
     status = vk_pipeline_create(&pipeline_desc, &vkctx->pipeline);
     if (status != VNL_SUCCESS)
