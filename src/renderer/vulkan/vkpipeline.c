@@ -210,6 +210,7 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .basePipelineIndex   = -1,
     };
 
+    // Single pipeline creation is currently supported
     VkPipeline pipeline;
 
     if (vkCreateGraphicsPipelines(desc->device, VK_NULL_HANDLE, 1,
