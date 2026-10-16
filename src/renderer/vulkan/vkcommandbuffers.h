@@ -43,15 +43,13 @@ VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
  * command buffer.
  */
 typedef struct {
-    VkCommandBuffer       command_buffer;
-    VkRenderPass          render_pass;
-    DARRAY(VkFramebuffer) framebuffers;
-    VkImage               image;
-    VkImageView           image_view;
-    VnlVec2               offset;
-    VkExtent2D            extent;
-    VnlColour             clear_colour;
-    VkPipeline            pipeline;
+    VkCommandBuffer command_buffer;
+    VkImage         image;
+    VkImageView     image_view;
+    VnlVec2         offset;
+    VkExtent2D      extent;
+    VnlColour       clear_colour;
+    VkPipeline      pipeline;
 } VkCommandBufferRecordDesc;
 
 /**

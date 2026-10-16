@@ -7,7 +7,6 @@
 #endif
 #include <mira/clarity.h>
 #include <mira/darray.h>
-#include <renderer/vulkan/vkrenderpass.h>
 #include <vulkan/vulkan.h>
 
 static void _transition_image_layout(VkCommandBuffer cmd_buffer, VkImage image,

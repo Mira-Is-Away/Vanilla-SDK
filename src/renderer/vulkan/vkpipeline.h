@@ -28,9 +28,8 @@ typedef struct VkPipelineInstance {
  * @brief Descriptor containing parameters for graphics pipeline creation.
  */
 typedef struct {
-    VkDevice     device;
-    VkRenderPass render_pass;
-    VkSwapchainInstance   swapchain;
+    VkDevice            device;
+    VkSwapchainInstance swapchain;
 } VkPipelineDesc;
 
 /**

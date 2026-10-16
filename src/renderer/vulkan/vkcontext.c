@@ -17,11 +17,9 @@
 #include <mira/vnl_types.h>
 #include <renderer/vulkan/vkcommandbuffers.h>
 #include <renderer/vulkan/vkcommandpool.h>
-#include <renderer/vulkan/vkframebuffer.h>
 #include <renderer/vulkan/vkimageview.h>
 #include <renderer/vulkan/vkpipeline.h>
 #include <renderer/vulkan/vkqueue.h>
-#include <renderer/vulkan/vkrenderpass.h>
 #include <renderer/vulkan/vkswapchain.h>
 #include <renderer/vulkan/vksync.h>
 #include <vnl_ds/vnl_list.h>
@@ -545,21 +543,6 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     if (!vkctx)
         return VNL_ERROR_OUT_OF_MEMORY;
 
-    /*
-    typedef struct VkContext {
-        VkInstance instance;
-        VkPhysicalDevice physical_device;
-        VkDevice device;
-        VkQueue graphics_queue;
-        VkQueue present_queue;
-        VkSurfaceKHR surface;
-        VkSwapchainInstance swapchain;
-        DARRAY(VkImageView) views;
-        VkPipelineLayout pipeline_layout;
-        VkRenderPass render_pass;
-    } VkContext;
-    */
-
     vkctx->instance            = VK_NULL_HANDLE;
     vkctx->physical_device     = VK_NULL_HANDLE;
     vkctx->device              = VK_NULL_HANDLE;
@@ -571,10 +554,8 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     vkctx->swapchain.extent    = (VkExtent2D){0, 0};
     vkctx->swapchain.images    = NULL;
     vkctx->image_views         = NULL;
-    vkctx->render_pass         = VK_NULL_HANDLE;
     vkctx->pipeline.pipeline   = VK_NULL_HANDLE;
     vkctx->pipeline.layout     = VK_NULL_HANDLE;
-    vkctx->framebuffers        = NULL;
     vkctx->command_pool        = VK_NULL_HANDLE;
     vkctx->command_buffers     = NULL;
     memset(&vkctx->sync, 0, sizeof(VkSync));
@@ -617,30 +598,11 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    VkRenderPassDesc render_pass_desc = {
-        .device = vkctx->device,
-        .format = vkctx->swapchain.format,
-    };
-    status = vk_render_pass_create(&render_pass_desc, &vkctx->render_pass);
-    if (status != VNL_SUCCESS)
-        goto cleanup;
-
     VkPipelineDesc pipeline_desc = {
-        .device      = vkctx->device,
-        .render_pass = vkctx->render_pass,
-        .swapchain   = vkctx->swapchain,
+        .device    = vkctx->device,
+        .swapchain = vkctx->swapchain,
     };
     status = vk_pipeline_create(&pipeline_desc, &vkctx->pipeline);
-    if (status != VNL_SUCCESS)
-        goto cleanup;
-
-    VkFramebufferDesc framebuffer_desc = {
-        .device      = vkctx->device,
-        .image_views = vkctx->image_views,
-        .render_pass = vkctx->render_pass,
-        .extent      = vkctx->swapchain.extent,
-    };
-    status = vk_framebuffers_create(&framebuffer_desc, &vkctx->framebuffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -692,11 +654,6 @@ void vulkan_shutdown(VkContext *vkctx) {
         if (vkctx->command_pool != VK_NULL_HANDLE) {
             vkDestroyCommandPool(vkctx->device, vkctx->command_pool, NULL);
         }
-        if (vkctx->framebuffers != NULL) {
-            DARRAY_FOREACH(VkFramebuffer, framebuffer, vkctx->framebuffers) {
-                vkDestroyFramebuffer(vkctx->device, *framebuffer, NULL);
-            }
-        }
         if (vkctx->pipeline.pipeline != VK_NULL_HANDLE) {
             vkDestroyPipeline(vkctx->device, vkctx->pipeline.pipeline, NULL);
             vkctx->pipeline.pipeline = VK_NULL_HANDLE;
@@ -705,10 +662,6 @@ void vulkan_shutdown(VkContext *vkctx) {
             vkDestroyPipelineLayout(vkctx->device, vkctx->pipeline.layout,
                                     NULL);
             vkctx->pipeline.layout = VK_NULL_HANDLE;
-        }
-        if (vkctx->render_pass != VK_NULL_HANDLE) {
-            vkDestroyRenderPass(vkctx->device, vkctx->render_pass, NULL);
-            vkctx->render_pass = VK_NULL_HANDLE;
         }
         if (vkctx->image_views != NULL) {
             DARRAY_FOREACH(VkImageView, view, vkctx->image_views) {

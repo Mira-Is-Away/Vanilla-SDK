@@ -17,11 +17,9 @@
 #include <mira/darray.h>
 #include <renderer/vulkan/vkcommandbuffers.h>
 #include <renderer/vulkan/vkcommandpool.h>
-#include <renderer/vulkan/vkframebuffer.h>
 #include <renderer/vulkan/vkimageview.h>
 #include <renderer/vulkan/vkpipeline.h>
 #include <renderer/vulkan/vkqueue.h>
-#include <renderer/vulkan/vkrenderpass.h>
 #include <renderer/vulkan/vkswapchain.h>
 #include <renderer/vulkan/vksync.h>
 
@@ -42,8 +40,6 @@ typedef struct VkContext {
     VkSwapchainInstance     swapchain;
     DARRAY(VkImageView)     image_views;
     VkPipelineInstance      pipeline;
-    VkRenderPass            render_pass;
-    DARRAY(VkFramebuffer)   framebuffers;
     VkCommandPool           command_pool;
     DARRAY(VkCommandBuffer) command_buffers;
     VkSync                  sync;

@@ -77,8 +77,6 @@ VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
 
     VkCommandBufferRecordDesc record_desc = {
         .command_buffer = vkctx->command_buffers[current_frame],
-        .render_pass    = vkctx->render_pass,
-        .framebuffers   = vkctx->framebuffers,
         .image          = vkctx->swapchain.images[image_index],
         .image_view     = vkctx->image_views[image_index],
         .offset         = (VnlVec2){0, 0},

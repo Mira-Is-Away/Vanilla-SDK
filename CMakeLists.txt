@@ -157,10 +157,8 @@ add_library(vanilla
     src/renderer/vulkan/vkqueue.c
     src/renderer/vulkan/vkswapchain.c
     src/renderer/vulkan/vkimageview.c
-    src/renderer/vulkan/vkrenderpass.c
     src/renderer/vulkan/vkshadermodules.c
     src/renderer/vulkan/vkpipeline.c
-    src/renderer/vulkan/vkframebuffer.c
     src/renderer/vulkan/vkcommandpool.c
     src/renderer/vulkan/vkcommandbuffers.c
     src/renderer/vulkan/vksync.c

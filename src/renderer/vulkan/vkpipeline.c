@@ -27,8 +27,6 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
     CLARITY_ASSERT(desc != NULL, "Pipeline descriptor cannot be NULL.");
     CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
                    "Logical device cannot be NULL.");
-    CLARITY_ASSERT(desc->render_pass != VK_NULL_HANDLE,
-                   "Render pass cannot be NULL.");
     CLARITY_ASSERT(out_pipeline != NULL,
                    "Output pipeline layout pointer cannot be NULL.");
 
