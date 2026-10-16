@@ -46,7 +46,8 @@ typedef struct {
     VkCommandBuffer       command_buffer;
     VkRenderPass          render_pass;
     DARRAY(VkFramebuffer) framebuffers;
-    u32                   image_index;
+    VkImage               image;
+    VkImageView           image_view;
     VnlVec2               offset;
     VkExtent2D            extent;
     VnlColour             clear_colour;

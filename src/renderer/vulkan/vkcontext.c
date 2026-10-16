@@ -469,6 +469,7 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
         .pNext = &extended_dynamic_state_features,
         .dynamicRendering = VK_TRUE,
+        .synchronization2 = VK_TRUE,
     };
 
     VkPhysicalDeviceVulkan11Features vulkan_11_features = {
