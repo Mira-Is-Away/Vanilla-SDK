@@ -26,6 +26,8 @@ typedef struct VnlRenderer VnlRenderer;
 VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
                             VnlRenderer **out_renderer);
 
+void vnl_renderer_clear_image(VnlRenderer *renderer);
+
 /**
  * @brief Draws a single frame using the active rendering backend.
  * @param[in] renderer The renderer handle.

@@ -48,10 +48,15 @@ typedef struct {
     VkImageView     image_view;
     VnlVec2         offset;
     VkExtent2D      extent;
-    VnlColour       clear_colour;
     VkPipeline      pipeline;
+    VnlColour       clear_colour;
 } VkCommandBufferRecordDesc;
 
+VnlStatus vk_command_buffer_begin_recording(const VkCommandBufferRecordDesc *desc);
+
+void vk_command_buffer_draw_batch(const VkCommandBufferRecordDesc *desc);
+
+VnlStatus vk_command_buffer_end_recording(const VkCommandBufferRecordDesc *desc);
 /**
  * @brief Records standard render pass and drawing commands into a command
  * buffer.
@@ -62,7 +67,7 @@ typedef struct {
  * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If finishing the
  * command buffer failed.
  */
-VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc);
+VnlStatus vk_command_buffer_record();
 
 /**
  * @brief Resets a command buffer to the initial state.

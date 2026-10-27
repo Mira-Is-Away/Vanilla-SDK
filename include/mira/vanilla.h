@@ -19,21 +19,30 @@ typedef struct VnlEngine VnlEngine;
 /**
  * @brief Initialises the engine and its components.
  * @param[in] config The configuration for the engine.
- * @param[out] out_engine A pointer to store the created engine instance.
  * @retval VNL_SUCCESS If initialisation was successful.
  */
-VNL_API VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine);
+VNL_API VnlStatus vnl_init(const VnlConfig *config);
+
+/**
+ * @brief Sets the current engine context used by the library.
+ * @param[in] engine A pointer to the desired context.
+ */
+VNL_API void vnl_set_context(VnlEngine *engine);
+
+/**
+ * @brief Retrieves a pointer to the current engine context being used.
+ * @return A pointer to the current context.
+ */
+VNL_API VnlEngine *vnl_get_context();
 
 /**
  * @brief Runs the engine's main loop.
- * @param[in] engine The engine instance to run.
  */
-VNL_API void vnl_run(VnlEngine *engine);
+VNL_API void vnl_run();
 
 /**
  * @brief Shuts down the engine, deallocating all used memory.
- * @param[in] engine The engine instance to shut down.
  */
-VNL_API void vnl_shutdown(VnlEngine *engine);
+VNL_API void vnl_shutdown();
 
 #endif

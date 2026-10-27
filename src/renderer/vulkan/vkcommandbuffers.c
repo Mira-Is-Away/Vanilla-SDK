@@ -77,8 +77,8 @@ VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
     return VNL_SUCCESS;
 }
 
-VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc) {
-
+VnlStatus
+vk_command_buffer_begin_recording(const VkCommandBufferRecordDesc *desc) {
     VkCommandBufferBeginInfo begin_info = {
         .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags            = 0,
@@ -104,6 +104,98 @@ VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc) {
         .imageView   = desc->image_view,
         .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         .loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp     = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue  = *(VkClearValue *)&desc->clear_colour,
+    };
+
+    VkRenderingInfo rendering_info = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea =
+            {
+                .offset = {0, 0},
+                .extent = desc->extent,
+            },
+        .layerCount           = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments    = &rendering_attachment_info,
+    };
+
+    vkCmdBeginRendering(desc->command_buffer, &rendering_info);
+
+    return VNL_SUCCESS;
+}
+
+void vk_command_buffer_draw_batch(const VkCommandBufferRecordDesc *desc) {
+    vkCmdBindPipeline(desc->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      desc->pipeline);
+
+    VkViewport viewport = {
+        .x        = 0.0f,
+        .y        = 0.0f,
+        .width    = (f32)desc->extent.width,
+        .height   = (f32)desc->extent.height,
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+
+    vkCmdSetViewport(desc->command_buffer, 0, 1, &viewport);
+
+    VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = desc->extent,
+    };
+
+    vkCmdSetScissor(desc->command_buffer, 0, 1, &scissor);
+
+    vkCmdDraw(desc->command_buffer, 3, 1, 0, 0);
+}
+
+VnlStatus
+vk_command_buffer_end_recording(const VkCommandBufferRecordDesc *desc) {
+    vkCmdEndRendering(desc->command_buffer);
+
+    _transition_image_layout(
+        desc->command_buffer, desc->image,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+        0, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+        VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT);
+
+    if (vkEndCommandBuffer(desc->command_buffer) != VK_SUCCESS) {
+        CLARITY_LOG_ERROR("Failed to record Vulkan command buffer.");
+        return VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED;
+    }
+
+    return VNL_SUCCESS;
+}
+
+VnlStatus vk_command_buffer_record() {
+    /*
+    VkCommandBufferBeginInfo begin_info = {
+        .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags            = 0,
+        .pInheritanceInfo = NULL,
+    };
+
+    if (vkBeginCommandBuffer(desc->command_buffer, &begin_info) != VK_SUCCESS) {
+        CLARITY_LOG_ERROR(
+            "Failed to begin recording into Vulkan command buffer!");
+        return VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED;
+    }
+
+    _transition_image_layout(
+        desc->command_buffer, desc->image, VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0,
+        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR);
+
+    VkRenderingAttachmentInfo rendering_attachment_info = {
+        .sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .pNext       = VK_NULL_HANDLE,
+        .imageView   = desc->image_view,
+        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .loadOp      = VK_ATTACHMENT_LOAD_OP_LOAD,
         .storeOp     = VK_ATTACHMENT_STORE_OP_STORE,
         .clearValue  = *(const VkClearValue *)&desc->clear_colour,
     };
@@ -158,6 +250,8 @@ VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc) {
         CLARITY_LOG_ERROR("Failed to record Vulkan command buffer.");
         return VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED;
     }
+
+    */
 
     return VNL_SUCCESS;
 }
