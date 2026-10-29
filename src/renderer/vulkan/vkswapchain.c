@@ -192,12 +192,12 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
     VkQueueFamilyIndices indices =
         vk_find_queue_families(desc->physical_device, desc->surface);
 
-    u32 queue_family_indices[] = {
-        indices.graphics_family,
-        indices.present_family,
-    };
-
     if (indices.graphics_family != indices.present_family) {
+        u32 queue_family_indices[] = {
+            indices.graphics_family,
+            indices.present_family,
+        };
+
         create_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
         create_info.queueFamilyIndexCount = 2;
         create_info.pQueueFamilyIndices   = queue_family_indices;

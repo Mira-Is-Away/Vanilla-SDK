@@ -1,7 +1,7 @@
 /**
  * @file vnl_status.h
  *
- * Definition of the status codes used throughout the engine.
+ * Definition of the status codes used by the library.
  *
  * @author Henry R
  * @date 26-02-28
@@ -29,13 +29,11 @@ typedef enum VnlStatus {
     VNL_ERROR_IMAGE_VIEW_CREATION_FAILED            = 11,
     VNL_ERROR_SHADER_CREATION_FAILED                = 12,
     VNL_ERROR_PIPELINE_CREATION_FAILED              = 13,
-    VNL_ERROR_RENDER_PASS_CREATION_FAILED           = 14,
-    VNL_ERROR_FRAMEBUFFER_CREATION_FAILED           = 15,
-    VNL_ERROR_COMMAND_POOL_CREATION_FAILED          = 16,
-    VNL_ERROR_COMMAND_BUFFER_CREATION_FAILED        = 17,
-    VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED = 18,
-    VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED   = 19,
-    VNL_ERROR_SYNC_OBJECTS_CREATION_FAILED          = 20,
+    VNL_ERROR_COMMAND_POOL_CREATION_FAILED          = 14,
+    VNL_ERROR_COMMAND_BUFFER_CREATION_FAILED        = 15,
+    VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED = 16,
+    VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED   = 17,
+    VNL_ERROR_SYNC_OBJECTS_CREATION_FAILED          = 18,
 } VnlStatus;
 
 #endif

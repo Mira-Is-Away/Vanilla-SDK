@@ -17,11 +17,9 @@
 #include <mira/vnl_types.h>
 #include <renderer/vulkan/vkcommandbuffers.h>
 #include <renderer/vulkan/vkcommandpool.h>
-#include <renderer/vulkan/vkframebuffer.h>
 #include <renderer/vulkan/vkimageview.h>
 #include <renderer/vulkan/vkpipeline.h>
 #include <renderer/vulkan/vkqueue.h>
-#include <renderer/vulkan/vkrenderpass.h>
 #include <renderer/vulkan/vkswapchain.h>
 #include <renderer/vulkan/vksync.h>
 #include <vnl_ds/vnl_list.h>
@@ -70,6 +68,14 @@ static bool vk_check_validation_layer_support(void) {
 }
 #endif
 
+static const char *const g_required_device_extensions[] = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,
+};
+static const u32 required_extension_count =
+    sizeof(g_required_device_extensions) /
+    sizeof(g_required_device_extensions[0]);
+
 static VkApplicationInfo vk_context_init_app_info(const VnlConfig *config) {
     return (VkApplicationInfo){
         .sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -105,21 +111,35 @@ static DARRAY(const char *) vk_get_required_ext() {
 }
 
 static VkInstanceCreateInfo
-vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
+vk_context_init_instance_create_info(const VkApplicationInfo *app_info,
+                                     DARRAY(const char *)     opt_extensions) {
+
+    VkInstanceCreateFlagBits flags = 0;
+
+    if (DARRAY_SIZE(opt_extensions) > 0) {
+        /**
+         * This is a very temporary solution; Ideally the flags would be
+         * updated dynamically according to requested extensions.
+         */
+        flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+    }
+
     VkInstanceCreateInfo create_info = {
-        .sType               = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext               = NULL,
-        .flags               = 0,
-        .pApplicationInfo    = app_info,
-        .enabledLayerCount   = 0,
-        .ppEnabledLayerNames = NULL,
+        .sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext                   = NULL,
+        .flags                   = flags,
+        .pApplicationInfo        = app_info,
+        .enabledLayerCount       = 0,
+        .ppEnabledLayerNames     = NULL,
+        .enabledExtensionCount   = DARRAY_SIZE(opt_extensions),
+        .ppEnabledExtensionNames = (const char *const *)opt_extensions,
     };
 
 #ifdef MIRA_CLARITY_DEBUG
     if (vk_check_validation_layer_support()) {
         create_info.enabledLayerCount   = validation_layer_count;
         create_info.ppEnabledLayerNames = validation_layers;
-        CLARITY_LOG_INFO("Validation layers enabled.");
+        CLARITY_LOG_OK("Validation layers enabled.");
     } else {
         CLARITY_LOG_WARN("Validation layers requested, but not available.");
     }
@@ -127,8 +147,24 @@ vk_context_init_instance_create_info(const VkApplicationInfo *app_info) {
 
     DARRAY(const char *) req_ext = vk_get_required_ext();
 
-    create_info.enabledExtensionCount   = (u32)DARRAY_SIZE(req_ext);
-    create_info.ppEnabledExtensionNames = req_ext;
+    /** Logic to deal with a dynamic number of extensions that should be loaded.
+     *  Could likely look nicer than this.
+     */
+    u32 ext_count =
+        (u32)DARRAY_SIZE(req_ext) + (u32)DARRAY_SIZE(opt_extensions);
+
+    DARRAY(const char *) extensions = NULL;
+
+    DARRAY_FOREACH(const char *, ext, req_ext) {
+        DARRAY_PUSH(extensions, *ext);
+    }
+
+    DARRAY_FOREACH(const char *, ext, opt_extensions) {
+        DARRAY_PUSH(extensions, *ext);
+    }
+
+    create_info.enabledExtensionCount   = ext_count;
+    create_info.ppEnabledExtensionNames = (const char *const *)extensions;
 
     return create_info;
 }
@@ -140,18 +176,50 @@ static VnlStatus vk_context_init(const VnlConfig *config, VkContext *vkctx) {
     u32 extension_count = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
 
+    // DARRAY(VkExtensionProperties) extensions;
+    // DARRAY_RESERVE(extensions, extension_count);
+    // Can't use RESERVE because the amount of extensions returned might be
+    // smaller than the intial value of extension_count
+    VkExtensionProperties *extensions =
+        CLARITY_MALLOC(extension_count * sizeof(VkExtensionProperties));
+
+    VkResult result = vkEnumerateInstanceExtensionProperties(
+        NULL, &extension_count, extensions);
+
+    static DARRAY(const char *) queried_instance_extensions = NULL;
+    DARRAY_PUSH(queried_instance_extensions,
+                VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+
+    DARRAY(const char *) selected_extensions = NULL;
+
+    for (u32 i = 0; i < extension_count; i++) {
+        CLARITY_LOG_INFO("Vulkan extension found: %s",
+                         extensions[i].extensionName);
+        for (u64 j = 0; j < DARRAY_SIZE(queried_instance_extensions); j++) {
+            if (strcmp(extensions[i].extensionName,
+                       queried_instance_extensions[j]) == 0) {
+                // Queried instance extension is supported, can load
+                CLARITY_LOG_OK("Vulkan: %s was requested and is supported.",
+                               extensions[i].extensionName);
+                DARRAY_PUSH(selected_extensions,
+                            queried_instance_extensions[j]);
+            }
+        }
+    }
+
     VkApplicationInfo    app_info = vk_context_init_app_info(config);
     VkInstanceCreateInfo instance_info =
-        vk_context_init_instance_create_info(&app_info);
+        vk_context_init_instance_create_info(&app_info, selected_extensions);
 
     VkInstance instance;
-    VkResult   result = vkCreateInstance(&instance_info, NULL, &instance);
+    result = vkCreateInstance(&instance_info, NULL, &instance);
 
     if (result != VK_SUCCESS) {
         CLARITY_LOG_WARN("Failed to initialise Vulkan Instance.");
         return VNL_ERROR_VULKAN_INSTANCE_CREATION_FAILED;
     }
 
+    CLARITY_FREE(extensions);
     vkctx->instance = instance;
     return VNL_SUCCESS;
 }
@@ -173,19 +241,36 @@ static bool vk_check_ext_suppport(VkPhysicalDevice device) {
     vkEnumerateDeviceExtensionProperties(device, NULL, &ext_count,
                                          available_ext);
 
-    bool found = false;
-    for (u32 i = 0; i < ext_count; i++) {
-        if (strcmp(available_ext[i].extensionName,
-                   VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
-            found = true;
-            break;
+    bool all_ext_supported = true;
+
+    for (u32 i = 0; i < required_extension_count; i++) {
+        bool found = false;
+        for (u32 j = 0; j < ext_count; j++) {
+            if (strcmp(available_ext[j].extensionName,
+                       g_required_device_extensions[i]) == 0) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            CLARITY_LOG_OK("Found support for the following extension: %s",
+                           g_required_device_extensions[i]);
+        } else {
+            // All available extensions were checked but the required extension
+            // is not supported.
+            CLARITY_LOG_ERROR(
+                "Missing support for the following Vulkan extension: %s",
+                g_required_device_extensions[i]);
+            all_ext_supported = false;
         }
     }
 
     CLARITY_FREE(available_ext);
-    return found;
+    return all_ext_supported;
 }
 
+/*
 static bool vk_is_device_suitable(VkPhysicalDevice device,
                                   VkSurfaceKHR     surface) {
     VkQueueFamilyIndices indices = vk_find_queue_families(device, surface);
@@ -201,7 +286,7 @@ static bool vk_is_device_suitable(VkPhysicalDevice device,
     return indices.has_graphics_family && indices.has_present_family &&
            ext_supported && adeq_swapchain;
 }
-
+*/
 static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx != NULL, "VkContext cannot be NULL.");
     CLARITY_ASSERT(vkctx->instance != VK_NULL_HANDLE,
@@ -225,14 +310,102 @@ static VnlStatus vk_pick_physical_device(VkContext *vkctx) {
 
     vkEnumeratePhysicalDevices(vkctx->instance, &device_count, devices);
 
+    // This will store the integrated GPU options and will only be used if no
+    // integrated GPUs are found.
+    VkPhysicalDevice *device_candidates =
+        CLARITY_MALLOC(device_count * sizeof(VkPhysicalDevice));
+    VkPhysicalDeviceProperties *device_candidates_properties =
+        CLARITY_MALLOC(device_count * sizeof(VkPhysicalDeviceProperties));
+    u32 canditates_index = 0;
+
     for (u32 i = 0; i < device_count; i++) {
-        if (vk_is_device_suitable(devices[i], vkctx->surface)) {
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(devices[i], &properties);
+
+        CLARITY_LOG_INFO("Found device %s", properties.deviceName);
+
+        if (properties.apiVersion < VK_API_VERSION_1_3) {
+            // Vanilla requires at least support for Vulkan 1.3 to run properly.
+            continue;
+        }
+
+        // Check if graphics queue families are supported
+        u32 qfp_count; // qfp -> queue family properties
+        vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &qfp_count, NULL);
+        CLARITY_ASSERT(qfp_count > 0,
+                       "Found GPU with zero queue family support, this "
+                       "shouldn't be allowed by the Vulkan spec.");
+
+        VkQueueFamilyProperties *qfp =
+            CLARITY_MALLOC(qfp_count * sizeof(VkQueueFamilyProperties));
+        if (!qfp) {
+            return VNL_ERROR_OUT_OF_MEMORY;
+        }
+        vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &qfp_count, qfp);
+
+        u32 supports_graphics = false;
+        for (u32 j = 0; j < qfp_count; j++) {
+            supports_graphics = qfp[j].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+            if (supports_graphics)
+                break;
+        }
+
+        if (!supports_graphics)
+            continue;
+
+        CLARITY_FREE(qfp);
+
+        // Check for required extensions
+        bool ext_supported = vk_check_ext_suppport(devices[i]);
+        if (!ext_supported)
+            continue;
+
+        // Check if there is support for an adequate swapchain
+        if (ext_supported) {
+            VkSwapchainInfo sc_info =
+                vk_swapchain_query_support(devices[i], vkctx->surface);
+            u32 adeq_swapchain = DARRAY_SIZE(sc_info.formats) != 0 &&
+                                 DARRAY_SIZE(sc_info.present_modes) != 0;
+
+            if (!adeq_swapchain)
+                continue;
+        }
+
+        // If it passes all checks, it is a suitable GPU.
+        if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+            // However, we'll keep looking just in case there is a suitable
+            // dedicated GPU available.
+            device_candidates[canditates_index]              = devices[i];
+            device_candidates_properties[canditates_index++] = properties;
+
+        } else if (properties.deviceType ==
+                   VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            // If we do find a suitable dedicated GPU, we'll use it.
             physical_device = devices[i];
+            CLARITY_LOG_OK("Device selected is %s", properties.deviceName);
+            break;
+        }
+
+        if (i == (device_count - 1)) {
+            // If this is the last GPU and we stil haven't found a discrete
+            // GPU, we'll go with the first suitable option from the
+            // integrated candidates.
+
+            if (canditates_index == 0) {
+                // No valid GPU options were found.
+                break;
+            }
+
+            physical_device = device_candidates[0];
+            CLARITY_LOG_OK("Device selected is %s",
+                           device_candidates_properties[0].deviceName);
             break;
         }
     }
 
     CLARITY_FREE(devices);
+    CLARITY_FREE(device_candidates);
+    CLARITY_FREE(device_candidates_properties);
 
     if (physical_device == VK_NULL_HANDLE) {
         CLARITY_LOG_WARN("Failed to find a GPU with Vulkan support.");
@@ -248,15 +421,8 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx->physical_device != VK_NULL_HANDLE,
                    "Physical device cannot be NULL.");
 
-    VkPhysicalDeviceFeatures device_features = {0};
-    VkQueueFamilyIndices     indices =
+    VkQueueFamilyIndices indices =
         vk_find_queue_families(vkctx->physical_device, vkctx->surface);
-
-    /**
-     * The current approach only allows for two queues, since
-     * queue_create_infos is a simple fixed-size array with
-     * information to create the graphics and present queues.
-     */
 
     f32                             queue_priority     = 1.0f;
     DARRAY(VkDeviceQueueCreateInfo) queue_create_infos = NULL;
@@ -272,6 +438,10 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
 
     DARRAY_PUSH(queue_create_infos, queue_create_info);
 
+    /**
+     * If the present queue family is different from the graphics queue family
+     * we need to create a separate queue for it.
+     */
     if (indices.graphics_family != indices.present_family) {
         queue_create_info = (VkDeviceQueueCreateInfo){
             .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -285,20 +455,44 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
         DARRAY_PUSH(queue_create_infos, queue_create_info);
     }
 
-    DARRAY(const char *) device_ext = NULL;
-    DARRAY_PUSH(device_ext, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    VkPhysicalDeviceExtendedDynamicStateFeaturesEXT
+        extended_dynamic_state_features = {
+            .sType =
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
+            .pNext                = NULL,
+            .extendedDynamicState = VK_TRUE,
+        };
+
+    VkPhysicalDeviceVulkan13Features vulkan_13_features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .pNext = &extended_dynamic_state_features,
+        .dynamicRendering = VK_TRUE,
+        .synchronization2 = VK_TRUE,
+    };
+
+    VkPhysicalDeviceVulkan11Features vulkan_11_features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+        .pNext = &vulkan_13_features,
+        .shaderDrawParameters = VK_TRUE,
+    };
+
+    VkPhysicalDeviceFeatures2 features2 = {
+        .sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext    = &vulkan_11_features,
+        .features = {0},
+    };
 
     VkDeviceCreateInfo create_info = {
         .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext                   = NULL,
+        .pNext                   = &features2,
         .flags                   = 0,
         .queueCreateInfoCount    = (size_t)DARRAY_SIZE(queue_create_infos),
         .pQueueCreateInfos       = queue_create_infos,
         .enabledLayerCount       = 0,
         .ppEnabledLayerNames     = NULL,
-        .enabledExtensionCount   = (size_t)DARRAY_SIZE(device_ext),
-        .ppEnabledExtensionNames = device_ext,
-        .pEnabledFeatures        = &device_features,
+        .enabledExtensionCount   = (size_t)required_extension_count,
+        .ppEnabledExtensionNames = g_required_device_extensions,
+        .pEnabledFeatures        = NULL,
     };
 
     VkResult result = vkCreateDevice(vkctx->physical_device, &create_info, NULL,
@@ -311,8 +505,13 @@ static VnlStatus vk_create_logical_device(VkContext *vkctx) {
 
     vkGetDeviceQueue(vkctx->device, indices.graphics_family, 0,
                      &vkctx->graphics_queue);
-    vkGetDeviceQueue(vkctx->device, indices.present_family, 0,
-                     &vkctx->present_queue);
+
+    if (indices.graphics_family != indices.present_family) {
+        vkGetDeviceQueue(vkctx->device, indices.present_family, 0,
+                         &vkctx->present_queue);
+    } else {
+        vkctx->present_queue = vkctx->graphics_queue;
+    }
 
     return VNL_SUCCESS;
 }
@@ -344,21 +543,6 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     if (!vkctx)
         return VNL_ERROR_OUT_OF_MEMORY;
 
-    /*
-    typedef struct VkContext {
-        VkInstance instance;
-        VkPhysicalDevice physical_device;
-        VkDevice device;
-        VkQueue graphics_queue;
-        VkQueue present_queue;
-        VkSurfaceKHR surface;
-        VkSwapchainInstance swapchain;
-        DARRAY(VkImageView) views;
-        VkPipelineLayout pipeline_layout;
-        VkRenderPass render_pass;
-    } VkContext;
-    */
-
     vkctx->instance            = VK_NULL_HANDLE;
     vkctx->physical_device     = VK_NULL_HANDLE;
     vkctx->device              = VK_NULL_HANDLE;
@@ -370,10 +554,8 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     vkctx->swapchain.extent    = (VkExtent2D){0, 0};
     vkctx->swapchain.images    = NULL;
     vkctx->image_views         = NULL;
-    vkctx->render_pass         = VK_NULL_HANDLE;
     vkctx->pipeline.pipeline   = VK_NULL_HANDLE;
     vkctx->pipeline.layout     = VK_NULL_HANDLE;
-    vkctx->framebuffers        = NULL;
     vkctx->command_pool        = VK_NULL_HANDLE;
     vkctx->command_buffers     = NULL;
     memset(&vkctx->sync, 0, sizeof(VkSync));
@@ -416,30 +598,11 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
     if (status != VNL_SUCCESS)
         goto cleanup;
 
-    VkRenderPassDesc render_pass_desc = {
-        .device = vkctx->device,
-        .format = vkctx->swapchain.format,
-    };
-    status = vk_render_pass_create(&render_pass_desc, &vkctx->render_pass);
-    if (status != VNL_SUCCESS)
-        goto cleanup;
-
     VkPipelineDesc pipeline_desc = {
-        .device      = vkctx->device,
-        .render_pass = vkctx->render_pass,
-        .extent      = vkctx->swapchain.extent,
+        .device    = vkctx->device,
+        .swapchain = vkctx->swapchain,
     };
     status = vk_pipeline_create(&pipeline_desc, &vkctx->pipeline);
-    if (status != VNL_SUCCESS)
-        goto cleanup;
-
-    VkFramebufferDesc framebuffer_desc = {
-        .device      = vkctx->device,
-        .image_views = vkctx->image_views,
-        .render_pass = vkctx->render_pass,
-        .extent      = vkctx->swapchain.extent,
-    };
-    status = vk_framebuffers_create(&framebuffer_desc, &vkctx->framebuffers);
     if (status != VNL_SUCCESS)
         goto cleanup;
 
@@ -491,11 +654,6 @@ void vulkan_shutdown(VkContext *vkctx) {
         if (vkctx->command_pool != VK_NULL_HANDLE) {
             vkDestroyCommandPool(vkctx->device, vkctx->command_pool, NULL);
         }
-        if (vkctx->framebuffers != NULL) {
-            DARRAY_FOREACH(VkFramebuffer, framebuffer, vkctx->framebuffers) {
-                vkDestroyFramebuffer(vkctx->device, *framebuffer, NULL);
-            }
-        }
         if (vkctx->pipeline.pipeline != VK_NULL_HANDLE) {
             vkDestroyPipeline(vkctx->device, vkctx->pipeline.pipeline, NULL);
             vkctx->pipeline.pipeline = VK_NULL_HANDLE;
@@ -504,10 +662,6 @@ void vulkan_shutdown(VkContext *vkctx) {
             vkDestroyPipelineLayout(vkctx->device, vkctx->pipeline.layout,
                                     NULL);
             vkctx->pipeline.layout = VK_NULL_HANDLE;
-        }
-        if (vkctx->render_pass != VK_NULL_HANDLE) {
-            vkDestroyRenderPass(vkctx->device, vkctx->render_pass, NULL);
-            vkctx->render_pass = VK_NULL_HANDLE;
         }
         if (vkctx->image_views != NULL) {
             DARRAY_FOREACH(VkImageView, view, vkctx->image_views) {

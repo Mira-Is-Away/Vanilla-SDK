@@ -43,16 +43,41 @@ VnlStatus vk_command_buffers_create(const VkCommandBufferDesc *desc,
  * command buffer.
  */
 typedef struct {
-    VkCommandBuffer       command_buffer;
-    VkRenderPass          render_pass;
-    DARRAY(VkFramebuffer) framebuffers;
-    u32                   image_index;
-    VnlVec2               offset;
-    VkExtent2D            extent;
-    VnlColour             clear_colour;
-    VkPipeline            pipeline;
+    VkCommandBuffer command_buffer;
+    VkImage         image;
+    VkImageView     image_view;
+    VnlVec2         offset;
+    VkExtent2D      extent;
+    VkPipeline      pipeline;
+    VnlColour       clear_colour;
 } VkCommandBufferRecordDesc;
 
+/**
+ * @brief Begins command buffer recording and starts dynamic rendering.
+ * @param[in] desc Pointer to the command buffer recording descriptor.
+ * @retval VNL_SUCCESS If recording was begun successfully.
+ * @retval VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED If beginning the
+ * command buffer failed.
+ */
+VnlStatus
+vk_command_buffer_begin_recording(const VkCommandBufferRecordDesc *desc);
+
+/**
+ * @brief Records pipeline binding, viewport, scissor, and draw commands into
+ * the command buffer.
+ * @param[in] desc Pointer to the command buffer recording descriptor.
+ */
+void vk_command_buffer_draw_batch(const VkCommandBufferRecordDesc *desc);
+
+/**
+ * @brief Ends dynamic rendering, transitions the swapchain image for
+ * presentation, and finishes command buffer recording.
+ * @param[in] desc Pointer to the command buffer recording descriptor.
+ * @retval VNL_SUCCESS If recording was ended successfully.
+ * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If finishing the
+ * command buffer failed.
+ */
+VnlStatus vk_command_buffer_end_recording(const VkCommandBufferRecordDesc *desc);
 /**
  * @brief Records standard render pass and drawing commands into a command
  * buffer.
@@ -63,7 +88,7 @@ typedef struct {
  * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If finishing the
  * command buffer failed.
  */
-VnlStatus vk_command_buffer_record(const VkCommandBufferRecordDesc *desc);
+VnlStatus vk_command_buffer_record();
 
 /**
  * @brief Resets a command buffer to the initial state.

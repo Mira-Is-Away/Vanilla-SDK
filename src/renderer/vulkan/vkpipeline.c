@@ -27,17 +27,15 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
     CLARITY_ASSERT(desc != NULL, "Pipeline descriptor cannot be NULL.");
     CLARITY_ASSERT(desc->device != VK_NULL_HANDLE,
                    "Logical device cannot be NULL.");
-    CLARITY_ASSERT(desc->render_pass != VK_NULL_HANDLE,
-                   "Render pass cannot be NULL.");
     CLARITY_ASSERT(out_pipeline != NULL,
                    "Output pipeline layout pointer cannot be NULL.");
 
     static const uint32_t vert_spv[] =
-#include "vertex.vert.spv.h"
+#include "vertex.spv.h"
         ;
 
     static const uint32_t frag_spv[] =
-#include "fragment.frag.spv.h"
+#include "fragment.spv.h"
         ;
 
     VkShaderModule vert_m, frag_m;
@@ -77,11 +75,6 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
     DARRAY_PUSH(shader_stages, v_create_info);
     DARRAY_PUSH(shader_stages, f_create_info);
 
-    /**
-     * The entire next session is full of currently unused structs, but that
-     * will be used later. The next section is commented out to avoid "unused
-     * variable" warnings.
-     */
     VkPipelineVertexInputStateCreateInfo vertex_input_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = NULL,
@@ -184,8 +177,20 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
 
     out_pipeline->layout = pipeline_layout;
 
+    VkPipelineRenderingCreateInfo pipeline_rendering_info =
+        (VkPipelineRenderingCreateInfo){
+            .sType    = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+            .pNext    = VK_NULL_HANDLE,
+            .viewMask = 0,
+            .colorAttachmentCount    = 1,
+            .pColorAttachmentFormats = &desc->swapchain.format,
+            .depthAttachmentFormat   = 0,
+            .stencilAttachmentFormat = 0,
+        };
+
     VkGraphicsPipelineCreateInfo pipeline_info = (VkGraphicsPipelineCreateInfo){
         .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext               = &pipeline_rendering_info,
         .stageCount          = 2,
         .pStages             = shader_stages,
         .pVertexInputState   = &vertex_input_info,
@@ -197,12 +202,13 @@ VnlStatus vk_pipeline_create(const VkPipelineDesc *desc,
         .pColorBlendState    = &colour_blend_info,
         .pDynamicState       = &dynamic_state,
         .layout              = pipeline_layout,
-        .renderPass          = desc->render_pass,
+        .renderPass          = NULL,
         .subpass             = 0,
         .basePipelineHandle  = VK_NULL_HANDLE,
         .basePipelineIndex   = -1,
     };
 
+    // Single pipeline creation is currently supported
     VkPipeline pipeline;
 
     if (vkCreateGraphicsPipelines(desc->device, VK_NULL_HANDLE, 1,

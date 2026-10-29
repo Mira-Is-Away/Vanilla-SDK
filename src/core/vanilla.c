@@ -22,9 +22,10 @@ struct VnlEngine {
     VnlRenderer     *renderer;
 };
 
-VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
+static VnlEngine *g_current_context = NULL;
+
+VnlStatus vnl_init(const VnlConfig *config) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
-    CLARITY_ASSERT(out_engine != NULL, "**out_engine must not be NULL.");
 
     VnlStatus status;
 
@@ -49,31 +50,77 @@ VnlStatus vnl_init(const VnlConfig *config, VnlEngine **out_engine) {
         return status;
     }
 
-    *out_engine = engine;
+    vnl_set_context(engine);
     return VNL_SUCCESS;
 }
 
-void vnl_run(VnlEngine *engine) {
-    CLARITY_ASSERT(engine != NULL, "Engine handle is NULL.");
-    CLARITY_ASSERT(engine->winman != NULL,
-                   "Engine window manager handle is NULL.");
-    CLARITY_ASSERT(engine->renderer != NULL, "Engine renderer handle is NULL.");
-    if (!engine || !engine->winman || !engine->renderer)
-        return;
+void vnl_set_context(VnlEngine *engine) {
+    g_current_context = engine;
+}
 
-    while (!vnl_winman_should_close(engine->winman)) {
-        vnl_winman_poll_events(engine->winman);
-        vnl_renderer_draw(engine->renderer);
+VnlEngine *vnl_get_context() {
+    return g_current_context;
+}
+
+bool vnl_is_running() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->winman != NULL,
+                   "Engine window manager handle is NULL.");
+
+    return !vnl_winman_should_close(g_current_context->winman);
+}
+
+void vnl_begin_frame() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->winman != NULL,
+                   "Engine window manager handle is NULL.");
+    CLARITY_ASSERT(g_current_context->renderer != NULL,
+                   "Engine renderer handle is NULL.");
+
+    vnl_winman_poll_events(g_current_context->winman);
+
+    VnlStatus status;
+    if ((status = vnl_renderer_begin_rendering(g_current_context->renderer)) !=
+        VNL_SUCCESS) {
+        exit(status);
     }
 }
 
-void vnl_shutdown(VnlEngine *engine) {
-    if (!engine)
-        return;
+void vnl_draw() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->renderer != NULL,
+                   "Engine renderer handle is NULL.");
 
-    vnl_renderer_shutdown(engine->renderer);
-    vnl_winman_shutdown(engine->winman);
-    CLARITY_FREE(engine);
+    vnl_renderer_draw(g_current_context->renderer);
+}
+
+void vnl_end_frame() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->renderer != NULL,
+                   "Engine renderer handle is NULL.");
+
+    vnl_renderer_end_rendering(g_current_context->renderer);
+}
+
+void vnl_run() {
+    while (vnl_is_running()) {
+        vnl_begin_frame();
+        vnl_draw();
+        vnl_end_frame();
+    }
+}
+
+void vnl_shutdown() {
+    if (g_current_context) {
+        vnl_renderer_shutdown(g_current_context->renderer);
+        vnl_winman_shutdown(g_current_context->winman);
+        CLARITY_FREE(g_current_context);
+        vnl_set_context(NULL);
+    }
 
     CLARITY_MEM_REPORT();
 }

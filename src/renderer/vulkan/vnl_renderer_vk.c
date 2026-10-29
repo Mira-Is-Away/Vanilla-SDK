@@ -25,14 +25,16 @@
 #include <vulkan/vulkan.h>
 
 struct VnlRenderer {
-    VkContext *vkctx;
-    VnlColour  clear_colour;
+    VkContext                *vkctx;
+    u32                       swapchain_image_index;
+    VnlColour                 clear_colour;
+    VkCommandBufferRecordDesc record_desc;
 };
 
 VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
                             VnlRenderer **out_renderer) {
-    CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
-    CLARITY_ASSERT(winman != NULL, "Window manager cannot be NULL.");
+    CLARITY_ASSERT(config != NULL, "Config handle cannot be NULL.");
+    CLARITY_ASSERT(winman != NULL, "Window manager handle cannot be NULL.");
     CLARITY_ASSERT(out_renderer != NULL,
                    "out_renderer pointer cannot be NULL.");
 
@@ -47,56 +49,94 @@ VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
         return status;
     }
 
-    renderer->clear_colour = config->clear_colour;
+    renderer->clear_colour          = config->clear_colour;
+    renderer->swapchain_image_index = 0;
 
     *out_renderer = renderer;
     return VNL_SUCCESS;
 }
 
-VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
-    CLARITY_ASSERT(renderer != NULL, "Renderer cannot be NULL.");
-    CLARITY_ASSERT(renderer->vkctx != NULL, "VkContext cannot be NULL.");
+void vnl_renderer_clear_image(VnlRenderer *renderer) {
+    CLARITY_ASSERT(renderer != NULL, "Renderer handle cannot be NULL.");
+    VkContext      *vk            = renderer->vkctx;
+    u32             current_frame = vk->current_frame;
+    VkCommandBuffer cmd_buffer    = vk->command_buffers[current_frame];
+    VkImage image = vk->swapchain.images[renderer->swapchain_image_index];
 
-    VkContext *vkctx         = renderer->vkctx;
-    u32        current_frame = vkctx->current_frame;
-    u32        image_index   = 0;
+    vkCmdClearColorImage(cmd_buffer, image,
+                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                         (VkClearColorValue *)&renderer->clear_colour, 0, NULL);
+}
 
-    vk_wait_in_flight(&vkctx->sync, current_frame);
+VnlStatus vnl_renderer_begin_rendering(VnlRenderer *renderer) {
+    CLARITY_ASSERT(renderer != NULL, "Renderer handle cannot be NULL.");
+    CLARITY_ASSERT(renderer->vkctx != NULL,
+                   "Vulkan Context handle cannot be NULL.");
 
-    if (vkAcquireNextImageKHR(vkctx->device, vkctx->swapchain.swapchain,
-                              UINT64_MAX,
-                              vkctx->sync.frames[current_frame].image_available,
-                              VK_NULL_HANDLE, &image_index)) {
+    VkContext *vk            = renderer->vkctx;
+    u32        current_frame = vk->current_frame;
+
+    vk_wait_in_flight(&vk->sync, current_frame);
+
+    if (vkAcquireNextImageKHR(vk->device, vk->swapchain.swapchain, UINT64_MAX,
+                              vk->sync.frames[current_frame].image_available,
+                              VK_NULL_HANDLE,
+                              &renderer->swapchain_image_index)) {
         CLARITY_LOG_ERROR("Failed to acquire next swapchain image.");
         return VNL_FAILURE;
     }
 
-    vk_reset_in_flight(&vkctx->sync, current_frame);
+    vk_reset_in_flight(&vk->sync, current_frame);
 
-    vk_command_buffer_reset(vkctx->command_buffers[current_frame]);
+    vk_command_buffer_reset(vk->command_buffers[current_frame]);
 
-    VkCommandBufferRecordDesc record_desc = {
-        .command_buffer = vkctx->command_buffers[current_frame],
-        .render_pass    = vkctx->render_pass,
-        .framebuffers   = vkctx->framebuffers,
-        .image_index    = image_index,
+    renderer->record_desc = (VkCommandBufferRecordDesc){
+        .command_buffer = vk->command_buffers[current_frame],
+        .image          = vk->swapchain.images[renderer->swapchain_image_index],
+        .image_view     = vk->image_views[renderer->swapchain_image_index],
         .offset         = (VnlVec2){0, 0},
-        .extent         = vkctx->swapchain.extent,
+        .extent         = vk->swapchain.extent,
+        .pipeline       = vk->pipeline.pipeline,
         .clear_colour   = renderer->clear_colour,
-        .pipeline       = vkctx->pipeline.pipeline,
     };
 
-    VnlStatus status = vk_command_buffer_record(&record_desc);
-    if (status != VNL_SUCCESS) {
+    VnlStatus status;
+    if ((status = vk_command_buffer_begin_recording(&renderer->record_desc)) !=
+        VNL_SUCCESS) {
+        return status;
+    }
+
+    return VNL_SUCCESS;
+}
+
+void vnl_renderer_draw(VnlRenderer *renderer) {
+    CLARITY_ASSERT(renderer != NULL, "Renderer handle cannot be NULL.");
+    CLARITY_ASSERT(renderer->vkctx != NULL,
+                   "Vulkan Context handle cannot be NULL.");
+
+    vk_command_buffer_draw_batch(&renderer->record_desc);
+}
+
+VnlStatus vnl_renderer_end_rendering(VnlRenderer *renderer) {
+    CLARITY_ASSERT(renderer != NULL, "Renderer handle cannot be NULL.");
+    CLARITY_ASSERT(renderer->vkctx != NULL,
+                   "Vulkan Context handle cannot be NULL.");
+
+    VkContext *vk            = renderer->vkctx;
+    u32        current_frame = vk->current_frame;
+    u32        image_index   = renderer->swapchain_image_index;
+
+    VnlStatus status;
+    if ((status = vk_command_buffer_end_recording(&renderer->record_desc)) !=
+        VNL_SUCCESS) {
         return status;
     }
 
     VkSemaphore wait_semaphores[] = {
-        vkctx->sync.frames[current_frame].image_available};
+        vk->sync.frames[current_frame].image_available};
     VkPipelineStageFlags wait_stages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    VkSemaphore signal_semaphores[] = {
-        vkctx->sync.render_finished[image_index]};
+    VkSemaphore signal_semaphores[] = {vk->sync.render_finished[image_index]};
 
     VkSubmitInfo submit_info = {
         .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -104,20 +144,19 @@ VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
         .pWaitSemaphores      = wait_semaphores,
         .pWaitDstStageMask    = wait_stages,
         .commandBufferCount   = 1,
-        .pCommandBuffers      = &vkctx->command_buffers[current_frame],
+        .pCommandBuffers      = &vk->command_buffers[current_frame],
         .signalSemaphoreCount = 1,
         .pSignalSemaphores    = signal_semaphores,
     };
 
-    if (vkQueueSubmit(vkctx->graphics_queue, 1, &submit_info,
-                      vkctx->sync.frames[current_frame].in_flight) !=
-        VK_SUCCESS) {
+    if (vkQueueSubmit(vk->graphics_queue, 1, &submit_info,
+                      vk->sync.frames[current_frame].in_flight) != VK_SUCCESS) {
         CLARITY_LOG_ERROR(
             "Failed to submit draw command buffer to graphics queue.");
         return VNL_FAILURE;
     }
 
-    VkSwapchainKHR swapchains[] = {vkctx->swapchain.swapchain};
+    VkSwapchainKHR swapchains[] = {vk->swapchain.swapchain};
 
     VkPresentInfoKHR present_info = {
         .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -129,16 +168,107 @@ VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
         .pResults           = NULL,
     };
 
-    if (vkQueuePresentKHR(vkctx->present_queue, &present_info) != VK_SUCCESS) {
+    if (vkQueuePresentKHR(vk->present_queue, &present_info) != VK_SUCCESS) {
+        CLARITY_LOG_ERROR("Failed to present swapchain image ().");
+        return VNL_FAILURE;
+    }
+
+    vk->current_frame = (vk->current_frame + 1) % VNL_MAX_FRAMES_IN_FLIGHT;
+
+    return VNL_SUCCESS;
+}
+
+/*
+VnlStatus vnl_renderer_draw(VnlRenderer *renderer) {
+    CLARITY_ASSERT(renderer != NULL, "Renderer handle cannot be NULL.");
+    CLARITY_ASSERT(renderer->vkctx != NULL, "VkContext cannot be NULL.");
+
+    VkContext *vk            = renderer->vkctx;
+    u32        current_frame = vk->current_frame;
+    u32        image_index   = 0;
+
+    vk_wait_in_flight(&vk->sync, current_frame);
+
+    if (vkAcquireNextImageKHR(vk->device, vk->swapchain.swapchain, UINT64_MAX,
+                              vk->sync.frames[current_frame].image_available,
+                              VK_NULL_HANDLE, &image_index)) {
+        CLARITY_LOG_ERROR("Failed to acquire next swapchain image.");
+        return VNL_FAILURE;
+    }
+
+    vk_reset_in_flight(&vk->sync, current_frame);
+
+    vk_command_buffer_reset(vk->command_buffers[current_frame]);
+
+    VkCommandBufferRecordDesc record_desc = {
+        .command_buffer = vk->command_buffers[current_frame],
+        .image          = vk->swapchain.images[image_index],
+        .image_view     = vk->image_views[image_index],
+        .offset         = (VnlVec2){0, 0},
+        .extent         = vk->swapchain.extent,
+        .pipeline       = vk->pipeline.pipeline,
+        .clear_colour   = renderer->clear_colour,
+    };
+
+    VnlStatus status;
+    if ((status = vk_command_buffer_begin_recording(&record_desc)) !=
+        VNL_SUCCESS) {
+        return status;
+    }
+
+    vk_command_buffer_draw_batch(&record_desc);
+
+    if ((status = vk_command_buffer_end_recording(&record_desc)) !=
+        VNL_SUCCESS) {
+        return status;
+    }
+
+    VkSemaphore wait_semaphores[] = {
+        vk->sync.frames[current_frame].image_available};
+    VkPipelineStageFlags wait_stages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    VkSemaphore signal_semaphores[] = {vk->sync.render_finished[image_index]};
+
+    VkSubmitInfo submit_info = {
+        .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount   = 1,
+        .pWaitSemaphores      = wait_semaphores,
+        .pWaitDstStageMask    = wait_stages,
+        .commandBufferCount   = 1,
+        .pCommandBuffers      = &vk->command_buffers[current_frame],
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores    = signal_semaphores,
+    };
+
+    if (vkQueueSubmit(vk->graphics_queue, 1, &submit_info,
+                      vk->sync.frames[current_frame].in_flight) != VK_SUCCESS) {
+        CLARITY_LOG_ERROR(
+            "Failed to submit draw command buffer to graphics queue.");
+        return VNL_FAILURE;
+    }
+
+    VkSwapchainKHR swapchains[] = {vk->swapchain.swapchain};
+
+    VkPresentInfoKHR present_info = {
+        .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores    = signal_semaphores,
+        .swapchainCount     = 1,
+        .pSwapchains        = swapchains,
+        .pImageIndices      = &image_index,
+        .pResults           = NULL,
+    };
+
+    if (vkQueuePresentKHR(vk->present_queue, &present_info) != VK_SUCCESS) {
         CLARITY_LOG_ERROR("Failed to present swapchain image.");
         return VNL_FAILURE;
     }
 
-    vkctx->current_frame =
-        (vkctx->current_frame + 1) % VNL_MAX_FRAMES_IN_FLIGHT;
+    vk->current_frame = (vk->current_frame + 1) % VNL_MAX_FRAMES_IN_FLIGHT;
 
     return VNL_SUCCESS;
 }
+*/
 
 void vnl_renderer_shutdown(VnlRenderer *renderer) {
     if (!renderer) {
