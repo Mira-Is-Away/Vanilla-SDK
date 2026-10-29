@@ -28,12 +28,9 @@ VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
 
 void vnl_renderer_clear_image(VnlRenderer *renderer);
 
-/**
- * @brief Draws a single frame using the active rendering backend.
- * @param[in] renderer The renderer handle.
- * @retval VNL_SUCCESS If the frame was rendered successfully.
- */
-VnlStatus vnl_renderer_draw(VnlRenderer *renderer);
+VnlStatus vnl_renderer_begin_rendering(VnlRenderer *renderer);
+void vnl_renderer_draw(VnlRenderer *renderer);
+VnlStatus vnl_renderer_end_rendering(VnlRenderer *renderer);
 
 /**
  * @brief Shuts down the rendering subsystem and frees all associated resources.

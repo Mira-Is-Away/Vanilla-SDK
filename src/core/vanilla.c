@@ -62,27 +62,55 @@ VnlEngine *vnl_get_context() {
     return g_current_context;
 }
 
-/*
-void vnl_begin_rendering() {
-    CLARITY_ASSERT(g_current_context != NULL, "Current context cannot be
-NULL.");
-}
-*/
+bool vnl_is_running() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->winman != NULL,
+                   "Engine window manager handle is NULL.");
 
-void vnl_run() {
+    return !vnl_winman_should_close(g_current_context->winman);
+}
+
+void vnl_begin_frame() {
     CLARITY_ASSERT(g_current_context != NULL,
                    "Vanilla's current context is NULL.");
     CLARITY_ASSERT(g_current_context->winman != NULL,
                    "Engine window manager handle is NULL.");
     CLARITY_ASSERT(g_current_context->renderer != NULL,
                    "Engine renderer handle is NULL.");
-    if (!g_current_context || !g_current_context->winman ||
-        !g_current_context->renderer)
-        return;
 
-    while (!vnl_winman_should_close(g_current_context->winman)) {
-        vnl_winman_poll_events(g_current_context->winman);
-        vnl_renderer_draw(g_current_context->renderer);
+    vnl_winman_poll_events(g_current_context->winman);
+
+    VnlStatus status;
+    if ((status = vnl_renderer_begin_rendering(g_current_context->renderer)) !=
+        VNL_SUCCESS) {
+        exit(status);
+    }
+}
+
+void vnl_draw() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->renderer != NULL,
+                   "Engine renderer handle is NULL.");
+
+    vnl_renderer_draw(g_current_context->renderer);
+}
+
+void vnl_end_frame() {
+    CLARITY_ASSERT(g_current_context != NULL,
+                   "Vanilla's current context is NULL.");
+    CLARITY_ASSERT(g_current_context->renderer != NULL,
+                   "Engine renderer handle is NULL.");
+
+    vnl_renderer_end_rendering(g_current_context->renderer);
+}
+
+void vnl_run() {
+    while (vnl_is_running()) {
+        vnl_begin_frame();
+        vnl_draw();
+        vnl_end_frame();
     }
 }
 
@@ -90,7 +118,7 @@ void vnl_shutdown() {
     if (g_current_context) {
         vnl_renderer_shutdown(g_current_context->renderer);
         vnl_winman_shutdown(g_current_context->winman);
-        CLARITY_FREE(g_current_context)
+        CLARITY_FREE(g_current_context);
         vnl_set_context(NULL);
     }
 

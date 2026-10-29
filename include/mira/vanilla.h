@@ -10,6 +10,8 @@
 #ifndef VANILLA_VANILLA_H_
 #define VANILLA_VANILLA_H_
 
+#include <stdbool.h>
+
 #include <mira/vnl_macros.h>
 #include <mira/vnl_status.h>
 #include <mira/vnl_types.h>
@@ -34,6 +36,11 @@ VNL_API void vnl_set_context(VnlEngine *engine);
  * @return A pointer to the current context.
  */
 VNL_API VnlEngine *vnl_get_context();
+
+bool vnl_is_running();
+void vnl_begin_frame();
+void vnl_draw();
+void vnl_end_frame();
 
 /**
  * @brief Runs the engine's main loop.
