@@ -26,10 +26,37 @@ typedef struct VnlRenderer VnlRenderer;
 VnlStatus vnl_renderer_init(const VnlConfig *config, VnlWinMan *winman,
                             VnlRenderer **out_renderer);
 
+/**
+ * @brief Clears the current swapchain image with the configured clear colour.
+ * @param[in] renderer The renderer handle.
+ */
 void vnl_renderer_clear_image(VnlRenderer *renderer);
 
+/**
+ * @brief Prepares the renderer and begins command recording for the current
+ * frame.
+ * @param[in] renderer The renderer handle.
+ * @retval VNL_SUCCESS If the rendering stage was started successfully.
+ * @retval VNL_FAILURE If acquiring the next swapchain image failed.
+ * @retval VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED If beginning command
+ * buffer recording failed.
+ */
 VnlStatus vnl_renderer_begin_rendering(VnlRenderer *renderer);
+
+/**
+ * @brief Records draw commands for the active frame.
+ * @param[in] renderer The renderer handle.
+ */
 void vnl_renderer_draw(VnlRenderer *renderer);
+
+/**
+ * @brief Concludes command recording, submits commands, and presents the frame.
+ * @param[in] renderer The renderer handle.
+ * @retval VNL_SUCCESS If the frame was successfully ended and presented.
+ * @retval VNL_FAILURE If queue submission or presentation failed.
+ * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If ending command
+ * buffer recording failed.
+ */
 VnlStatus vnl_renderer_end_rendering(VnlRenderer *renderer);
 
 /**

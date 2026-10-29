@@ -52,10 +52,31 @@ typedef struct {
     VnlColour       clear_colour;
 } VkCommandBufferRecordDesc;
 
-VnlStatus vk_command_buffer_begin_recording(const VkCommandBufferRecordDesc *desc);
+/**
+ * @brief Begins command buffer recording and starts dynamic rendering.
+ * @param[in] desc Pointer to the command buffer recording descriptor.
+ * @retval VNL_SUCCESS If recording was begun successfully.
+ * @retval VNL_ERROR_COMMAND_BUFFER_BEGIN_RECORDING_FAILED If beginning the
+ * command buffer failed.
+ */
+VnlStatus
+vk_command_buffer_begin_recording(const VkCommandBufferRecordDesc *desc);
 
+/**
+ * @brief Records pipeline binding, viewport, scissor, and draw commands into
+ * the command buffer.
+ * @param[in] desc Pointer to the command buffer recording descriptor.
+ */
 void vk_command_buffer_draw_batch(const VkCommandBufferRecordDesc *desc);
 
+/**
+ * @brief Ends dynamic rendering, transitions the swapchain image for
+ * presentation, and finishes command buffer recording.
+ * @param[in] desc Pointer to the command buffer recording descriptor.
+ * @retval VNL_SUCCESS If recording was ended successfully.
+ * @retval VNL_ERROR_COMMAND_BUFFER_END_RECORDING_FAILED If finishing the
+ * command buffer failed.
+ */
 VnlStatus vk_command_buffer_end_recording(const VkCommandBufferRecordDesc *desc);
 /**
  * @brief Records standard render pass and drawing commands into a command
