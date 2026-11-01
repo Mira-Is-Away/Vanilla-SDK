@@ -54,3 +54,11 @@ VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
 
     return VNL_SUCCESS;
 }
+
+void vk_image_view_destroy(VkDevice device, DARRAY(VkImageView) views) {
+    DARRAY_FOREACH(VkImageView, view, views) {
+        if (view != VK_NULL_HANDLE) {
+            vkDestroyImageView(device, view, NULL);
+        }
+    }
+}

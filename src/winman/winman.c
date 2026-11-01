@@ -32,7 +32,7 @@ VnlStatus vnl_winman_init(const VnlConfig *config, VnlWinMan **out_winman) {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     GLFWwindow *new_window = glfwCreateWindow(
         config->window.width, config->window.height, config->title, NULL, NULL);

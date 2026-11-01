@@ -233,3 +233,12 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
 
     return VNL_SUCCESS;
 }
+
+void vk_swapchain_destroy(VkDevice device, VkSwapchainInstance *swapchain) {
+    if (swapchain->images) {
+        DARRAY_FREE(swapchain->images);
+    }
+    if (swapchain->swapchain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(device, swapchain->swapchain, NULL);
+    }
+}

@@ -78,12 +78,17 @@ VnlStatus vnl_renderer_begin_rendering(VnlRenderer *renderer) {
 
     vk_wait_in_flight(&vk->sync, current_frame);
 
-    if (vkAcquireNextImageKHR(vk->device, vk->swapchain.swapchain, UINT64_MAX,
+    VkResult result;
+    if ((result = vkAcquireNextImageKHR(vk->device, vk->swapchain.swapchain, UINT64_MAX,
                               vk->sync.frames[current_frame].image_available,
                               VK_NULL_HANDLE,
-                              &renderer->swapchain_image_index)) {
-        CLARITY_LOG_ERROR("Failed to acquire next swapchain image.");
-        return VNL_FAILURE;
+                              &renderer->swapchain_image_index)) != VK_SUCCESS) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            
+        } else if (result != VK_SUBOPTIMAL_KHR) {
+            CLARITY_LOG_ERROR("Failed to acquire next swapchain image.");
+            return VNL_FAILURE;
+        }
     }
 
     vk_reset_in_flight(&vk->sync, current_frame);

@@ -71,4 +71,11 @@ VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
 VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
                               VkSwapchainInstance   *out_sc);
 
+/**
+* @brief Destroys a Vulkan swapchain instance.
+* @param[in] device A handle to a Vulkan logical device.
+* @param[in] swapchain The swapchain object instance to be destroyed.
+*/
+void vk_swapchain_destroy(VkDevice device, VkSwapchainInstance swapchain);
+
 #endif

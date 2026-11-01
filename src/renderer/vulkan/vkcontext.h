@@ -31,6 +31,7 @@ typedef struct VnlWinMan VnlWinMan;
  * @brief Holds pointers and handles to Vulkan context information.
  */
 typedef struct VkContext {
+    VnlWinMan              *winman;
     VkInstance              instance;
     VkPhysicalDevice        physical_device;
     VkDevice                device;
@@ -56,6 +57,13 @@ typedef struct VkContext {
  */
 VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
                       VkContext **out_ctx);
+
+/**
+* @brief Recreate the Vulkan swapchain instance object.
+* @param[in] vkctx The handle to a Vulkan Context object.
+* @retval VNL_SUCESS If the recreation of the swapchain is successful.
+*/
+VnlStatus vulkan_recreate_swapchain(VkContext *vkctx);
 
 /**
  * @brief Shuts down the Vulkan context and destroys all associated Vulkan
