@@ -36,4 +36,11 @@ typedef struct {
 VnlStatus vk_image_view_create(const VkImageViewDesc *desc,
                                DARRAY(VkImageView)   *out_views);
 
+/**
+* @brief Destroys all Vulkan image views.
+* @param[in] device A handle to a Vulkan logical device.
+* @param[in] view A dynamic array containing the image views to be destroyed.
+*/
+void vk_image_view_destroy(VkDevice device, DARRAY(VkImageView) views);
+
 #endif

@@ -52,7 +52,7 @@ VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
     return info;
 }
 
-VkSurfaceFormatKHR
+static VkSurfaceFormatKHR
 vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats) {
     DARRAY_FOREACH(VkSurfaceFormatKHR, format, available_formats) {
         if (format->format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -63,7 +63,7 @@ vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats) {
     return available_formats[0];
 }
 
-VkPresentModeKHR vk_swapchain_choose_present_mode(
+static VkPresentModeKHR vk_swapchain_choose_present_mode(
     /*DARRAY(VkPresentModeKHR)
         available_present_modes*/
 ) {
@@ -129,8 +129,8 @@ static inline u32 _u32_clamp(u32 val, u32 min, u32 max) {
     return val;
 }
 
-VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
-                               VkSurfaceCapabilitiesKHR *cap) {
+static VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
+                                      VkSurfaceCapabilitiesKHR *cap) {
 
     if (cap->currentExtent.width != UINT32_MAX)
         return cap->currentExtent;
@@ -232,4 +232,13 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
     }
 
     return VNL_SUCCESS;
+}
+
+void vk_swapchain_destroy(VkDevice device, VkSwapchainInstance swapchain) {
+    if (swapchain.images) {
+        DARRAY_FREE(swapchain.images);
+    }
+    if (swapchain.swapchain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(device, swapchain.swapchain, NULL);
+    }
 }

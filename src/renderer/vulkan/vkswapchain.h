@@ -62,33 +62,6 @@ VkSwapchainInfo vk_swapchain_query_support(VkPhysicalDevice device,
                                            VkSurfaceKHR     surface);
 
 /**
- * @brief Selects an optimal surface format (preferring SRGB).
- * @param[in] available_formats Dynamic array of supported surface formats.
- * @return The chosen VkSurfaceFormatKHR.
- */
-VkSurfaceFormatKHR
-vk_swapchain_choose_format(DARRAY(VkSurfaceFormatKHR) available_formats);
-
-/**
- * @brief Selects the presentation mode for the swapchain.
- * @return The chosen VkPresentModeKHR.
- */
-VkPresentModeKHR vk_swapchain_choose_present_mode(
-    /*DARRAY(VkPresentModeKHR)
-        available_present_modes*/
-);
-
-/**
- * @brief Computes the swapchain 2D extent matching the window framebuffer
- * dimensions.
- * @param[in] winman The window manager handle.
- * @param[in] cap Pointer to the surface capabilities.
- * @return VkExtent2D with clamped dimensions.
- */
-VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
-                               VkSurfaceCapabilitiesKHR *cap);
-
-/**
  * @brief Creates a Vulkan swapchain and retrieves its images.
  * @param[in] desc Pointer to the swapchain creation descriptor.
  * @param[out] out_sc Pointer to store the created swapchain instance.
@@ -97,5 +70,12 @@ VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
  */
 VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
                               VkSwapchainInstance   *out_sc);
+
+/**
+* @brief Destroys a Vulkan swapchain instance.
+* @param[in] device A handle to a Vulkan logical device.
+* @param[in] swapchain The swapchain object instance to be destroyed.
+*/
+void vk_swapchain_destroy(VkDevice device, VkSwapchainInstance swapchain);
 
 #endif

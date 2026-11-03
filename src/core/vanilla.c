@@ -80,6 +80,8 @@ void vnl_begin_frame() {
                    "Engine renderer handle is NULL.");
 
     vnl_winman_poll_events(g_current_context->winman);
+    if (vnl_winman_should_close(g_current_context->winman))
+        return;
 
     VnlStatus status;
     if ((status = vnl_renderer_begin_rendering(g_current_context->renderer)) !=
@@ -94,6 +96,9 @@ void vnl_draw() {
     CLARITY_ASSERT(g_current_context->renderer != NULL,
                    "Engine renderer handle is NULL.");
 
+    if (vnl_winman_should_close(g_current_context->winman))
+        return;
+
     vnl_renderer_draw(g_current_context->renderer);
 }
 
@@ -102,6 +107,9 @@ void vnl_end_frame() {
                    "Vanilla's current context is NULL.");
     CLARITY_ASSERT(g_current_context->renderer != NULL,
                    "Engine renderer handle is NULL.");
+
+    if (vnl_winman_should_close(g_current_context->winman))
+        return;
 
     vnl_renderer_end_rendering(g_current_context->renderer);
 }
