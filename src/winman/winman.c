@@ -17,7 +17,18 @@ typedef struct VnlWinMan {
     int         width;
     int         height;
     GLFWwindow *window;
+    bool        framebuffer_resized;
 } VnlWinMan;
+
+static void _vnl_framebuffer_size_callback(GLFWwindow *window, int width,
+                                           int height) {
+    VnlWinMan *winman = (VnlWinMan *)glfwGetWindowUserPointer(window);
+    if (winman) {
+        winman->width               = width;
+        winman->height              = height;
+        winman->framebuffer_resized = true;
+    }
+}
 
 VnlStatus vnl_winman_init(const VnlConfig *config, VnlWinMan **out_winman) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
@@ -50,9 +61,13 @@ VnlStatus vnl_winman_init(const VnlConfig *config, VnlWinMan **out_winman) {
         return VNL_ERROR_OUT_OF_MEMORY;
     }
 
-    winman->width  = config->window.width;
-    winman->height = config->window.height;
-    winman->window = new_window;
+    winman->width               = config->window.width;
+    winman->height              = config->window.height;
+    winman->window              = new_window;
+    winman->framebuffer_resized = false;
+
+    glfwSetWindowUserPointer(new_window, winman);
+    glfwSetFramebufferSizeCallback(new_window, _vnl_framebuffer_size_callback);
 
     *out_winman = winman;
 
@@ -104,6 +119,23 @@ void vnl_winman_get_framebuffer_size(VnlWinMan *winman, int *out_width,
     CLARITY_ASSERT(winman != NULL, "winman cannot be NULL.");
     CLARITY_ASSERT(winman->window != NULL, "winman->window cannot be NULL.");
     glfwGetFramebufferSize(winman->window, out_width, out_height);
+}
+
+void vnl_winman_wait_events(VnlWinMan *winman) {
+    (void)winman;
+    glfwWaitEvents();
+}
+
+bool vnl_winman_was_resized(const VnlWinMan *winman) {
+    CLARITY_ASSERT(winman != NULL, "winman cannot be NULL.");
+    return winman ? winman->framebuffer_resized : false;
+}
+
+void vnl_winman_set_resized(VnlWinMan *winman, bool resized) {
+    CLARITY_ASSERT(winman != NULL, "winman cannot be NULL.");
+    if (winman) {
+        winman->framebuffer_resized = resized;
+    }
 }
 
 void vnl_winman_shutdown(VnlWinMan *winman) {

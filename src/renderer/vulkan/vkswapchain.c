@@ -130,7 +130,7 @@ static inline u32 _u32_clamp(u32 val, u32 min, u32 max) {
 }
 
 static VkExtent2D vk_swapchain_extent(VnlWinMan                *winman,
-                               VkSurfaceCapabilitiesKHR *cap) {
+                                      VkSurfaceCapabilitiesKHR *cap) {
 
     if (cap->currentExtent.width != UINT32_MAX)
         return cap->currentExtent;
@@ -234,11 +234,11 @@ VnlStatus vk_swapchain_create(const VkSwapchainDesc *desc,
     return VNL_SUCCESS;
 }
 
-void vk_swapchain_destroy(VkDevice device, VkSwapchainInstance *swapchain) {
-    if (swapchain->images) {
-        DARRAY_FREE(swapchain->images);
+void vk_swapchain_destroy(VkDevice device, VkSwapchainInstance swapchain) {
+    if (swapchain.images) {
+        DARRAY_FREE(swapchain.images);
     }
-    if (swapchain->swapchain != VK_NULL_HANDLE) {
-        vkDestroySwapchainKHR(device, swapchain->swapchain, NULL);
+    if (swapchain.swapchain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(device, swapchain.swapchain, NULL);
     }
 }

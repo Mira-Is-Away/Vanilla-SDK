@@ -516,7 +516,8 @@ VnlStatus vulkan_init(const VnlConfig *config, VnlWinMan *winman,
                       VkContext **out_ctx) {
     CLARITY_ASSERT(config != NULL, "Config cannot be NULL.");
     CLARITY_ASSERT(winman != NULL, "Window Manager handle cannot be NULL.");
-    CLARITY_ASSERT(out_ctx != NULL, "Output Vulkan Context handle cannot be NULL.");
+    CLARITY_ASSERT(out_ctx != NULL,
+                   "Output Vulkan Context handle cannot be NULL.");
 
     VkContext *vkctx = CLARITY_MALLOC(sizeof(VkContext));
     if (vkctx) {
@@ -634,10 +635,60 @@ VnlStatus vulkan_recreate_swapchain(VkContext *vkctx) {
     CLARITY_ASSERT(vkctx->winman != NULL,
                    "Window Manager handle cannot be NULL.");
 
+    int width = 0, height = 0;
+    vnl_winman_get_framebuffer_size(vkctx->winman, &width, &height);
+    while ((width == 0 || height == 0) && // Window was minimised
+           !vnl_winman_should_close(vkctx->winman)) {
+        vnl_winman_wait_events(vkctx->winman);
+        vnl_winman_get_framebuffer_size(vkctx->winman, &width, &height);
+    }
+
+    if (vnl_winman_should_close(vkctx->winman)) {
+        return VNL_SUCCESS;
+    }
+
     vkDeviceWaitIdle(vkctx->device);
 
     vk_image_view_destroy(vkctx->device, vkctx->image_views);
-    vk_swapchain_destroy();
+    DARRAY_FREE(vkctx->image_views);
+    vkctx->image_views = NULL;
+
+    vk_swapchain_destroy(vkctx->device, vkctx->swapchain);
+
+    VkSwapchainDesc swapchain_desc = {
+        .physical_device = vkctx->physical_device,
+        .device          = vkctx->device,
+        .surface         = vkctx->surface,
+        .winman          = vkctx->winman,
+    };
+
+    VnlStatus status;
+    status = vk_swapchain_create(&swapchain_desc, &vkctx->swapchain);
+    if (status != VNL_SUCCESS)
+        return status;
+
+    VkImageViewDesc image_view_desc = {
+        .device = vkctx->device,
+        .images = vkctx->swapchain.images,
+        .format = vkctx->swapchain.format,
+    };
+    status = vk_image_view_create(&image_view_desc, &vkctx->image_views);
+    if (status != VNL_SUCCESS)
+        return status;
+
+    if (DARRAY_SIZE(vkctx->sync.render_finished) !=
+        DARRAY_SIZE(vkctx->swapchain.images)) {
+        vk_sync_destroy(&vkctx->sync);
+        VkSyncDesc sync_desc = {
+            .device                = vkctx->device,
+            .swapchain_image_count = (u32)DARRAY_SIZE(vkctx->swapchain.images),
+        };
+        status = vk_sync_create(&sync_desc, &vkctx->sync);
+        if (status != VNL_SUCCESS)
+            return status;
+    }
+
+    return VNL_SUCCESS;
 }
 
 void vulkan_shutdown(VkContext *vkctx) {

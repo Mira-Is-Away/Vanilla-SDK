@@ -80,6 +80,26 @@ void vnl_winman_get_framebuffer_size(VnlWinMan *winman, int *out_width,
                                      int *out_height);
 
 /**
+ * @brief Waits until at least one event is available and processes it.
+ * @param[in] winman The window manager handle.
+ */
+void vnl_winman_wait_events(VnlWinMan *winman);
+
+/**
+ * @brief Checks if the window framebuffer was resized.
+ * @param[in] winman The window manager handle.
+ * @return True if resized, false otherwise.
+ */
+bool vnl_winman_was_resized(const VnlWinMan *winman);
+
+/**
+ * @brief Sets the window framebuffer resized flag.
+ * @param[in] winman The window manager handle.
+ * @param[in] resized Flag state.
+ */
+void vnl_winman_set_resized(VnlWinMan *winman, bool resized);
+
+/**
  * @brief Shuts down the window manager and terminates the windowing subsystem.
  * @param winman The window manager to shut down.
  */
